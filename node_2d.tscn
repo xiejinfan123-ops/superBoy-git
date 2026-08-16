@@ -8881,7 +8881,7 @@ scroll_offset = Vector2(799, -19)
 
 [node name="CoralBreakSet00461" type="Sprite2D" parent="Parallax2D" unique_id=1775160792]
 modulate = Color(0.38928655, 0.38928664, 0.38928658, 1)
-position = Vector2(-853, -85)
+position = Vector2(-852, -166)
 texture = ExtResource("13_0h7mo")
 
 [node name="1786820354134" type="Sprite2D" parent="Parallax2D" unique_id=1850077670]
@@ -8932,7 +8932,7 @@ scale = Vector2(0.71678317, 0.7167832)
 texture = ExtResource("10_x0ka3")
 
 [node name="PointLight2D" type="PointLight2D" parent="Parallax2D" unique_id=572812845]
-position = Vector2(-977, -497)
+position = Vector2(-1023, -479)
 color = Color(0.97882634, 0.8939346, 0.8459876, 1)
 energy = 5.0
 texture = ExtResource("14_d2bti")
