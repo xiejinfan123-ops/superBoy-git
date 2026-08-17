@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cji4npstbuyox"
-path="res://.godot/imported/coral_break_set_0046_1.png-c8496adf47ab8f0a8cc47bfaf7ebcb94.ctex"
+uid="uid://bxvid70sy5fp6"
+path="res://.godot/imported/grass_ball.png-a5761517a2c4f9d7eed51f883d7387ab.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://C/coral_break_set_0046_1.png"
-dest_files=["res://.godot/imported/coral_break_set_0046_1.png-c8496adf47ab8f0a8cc47bfaf7ebcb94.ctex"]
+source_file="res://C/3/grass_ball.png"
+dest_files=["res://.godot/imported/grass_ball.png-a5761517a2c4f9d7eed51f883d7387ab.ctex"]
 
 [params]
 

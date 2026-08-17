@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://drq5gkkdjthql"
-path="res://.godot/imported/fine-edited_chroma.png-13dd223649459061dd884ea032408e05.ctex"
+uid="uid://dkoa1v7puonea"
+path="res://.godot/imported/boneforest_mid_wall_0002_2_big_bg_chunk.png-3af59f625c578b58f5ba87063d0f42a0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://C/fine-edited_chroma.png"
-dest_files=["res://.godot/imported/fine-edited_chroma.png-13dd223649459061dd884ea032408e05.ctex"]
+source_file="res://C/1/boneforest_mid_wall_0002_2_big_bg_chunk.png"
+dest_files=["res://.godot/imported/boneforest_mid_wall_0002_2_big_bg_chunk.png-3af59f625c578b58f5ba87063d0f42a0.ctex"]
 
 [params]
 

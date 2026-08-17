@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dnltold7p5i2x"
-path="res://.godot/imported/Coral_grass_pink_0000_3.png-bf81fd2f5fa91ee961eab4d604be1994.ctex"
+uid="uid://cl3gu4thamjvk"
+path="res://.godot/imported/Coral_green_underhang.png-b9a9a0d7b10b530d8738923c9d98d121.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://C/Coral_grass_pink_0000_3.png"
-dest_files=["res://.godot/imported/Coral_grass_pink_0000_3.png-bf81fd2f5fa91ee961eab4d604be1994.ctex"]
+source_file="res://C/1/Coral_green_underhang.png"
+dest_files=["res://.godot/imported/Coral_green_underhang.png-b9a9a0d7b10b530d8738923c9d98d121.ctex"]
 
 [params]
 

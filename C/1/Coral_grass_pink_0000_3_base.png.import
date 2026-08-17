@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ufyuq5stqrcd"
-path="res://.godot/imported/_0007_quest_jar_scientist.png-e1d601ae93a455f334af41ebac2e5eab.ctex"
+uid="uid://f26012b0lr8x"
+path="res://.godot/imported/Coral_grass_pink_0000_3_base.png-029e12a943b41b9ec61980f80d07806a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://C/_0007_quest_jar_scientist.png"
-dest_files=["res://.godot/imported/_0007_quest_jar_scientist.png-e1d601ae93a455f334af41ebac2e5eab.ctex"]
+source_file="res://C/1/Coral_grass_pink_0000_3_base.png"
+dest_files=["res://.godot/imported/Coral_grass_pink_0000_3_base.png-029e12a943b41b9ec61980f80d07806a.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bbdbay2fwluxn"
-path="res://.godot/imported/coral_break_set_0047_1.png-1effb4fdac262fda85259c7e1be957a1.ctex"
+uid="uid://bhkiawn0g3oxd"
+path="res://.godot/imported/bone_moss_bg_combined.png-f96978e0db4e2d5823054bb4b2388903.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://C/coral_break_set_0047_1.png"
-dest_files=["res://.godot/imported/coral_break_set_0047_1.png-1effb4fdac262fda85259c7e1be957a1.ctex"]
+source_file="res://C/3/bone_moss_bg_combined.png"
+dest_files=["res://.godot/imported/bone_moss_bg_combined.png-f96978e0db4e2d5823054bb4b2388903.ctex"]
 
 [params]
 
