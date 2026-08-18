@@ -44,12 +44,17 @@ extends Polygon2D
 @export_range(1, 8) var iterations: int = 3
 ## Fraction of velocity kept each substep. High = momentum survives, cloth
 ## overshoots and oscillates. The shape-memory pull is what stops it drifting.
-@export_range(0.9, 1.0, 0.005) var damping: float = 0.985
-## Residual cloth gravity, px/s². Deliberately tiny: the artwork already
-## depicts the drape hanging at gravity equilibrium, so simulating full
-## gravity on top of it double-counts and drags the cloth 20+ px below the
-## drawn silhouette. Lift during falls comes from the airflow term instead.
-@export var cloth_gravity: float = 150.0
+## 0.978: heavy fabric bleeds energy through internal friction — LEIVO asked
+## for a cape with weight, and the earlier 0.985 read as silk.
+@export_range(0.9, 1.0, 0.005) var damping: float = 0.978
+## Cloth gravity, px/s². This is what the airflow has to defeat before the
+## cape can lift, so it IS the weight of the fabric. 300 with shape_memory 80
+## sags the drape ~4 px below the drawn silhouette, which homing then closes.
+@export var cloth_gravity: float = 300.0
+## Mass factor at the hem relative to the collar. A real cape is cut with a
+## weighted hem: air shoves the shoulders around, the hem swings late and
+## low. Applied to air and kicks only — gravity accelerates all mass alike.
+@export_range(1.0, 2.5, 0.05) var hem_mass: float = 1.45
 ## How firmly compressed edges resist. ~0 = fabric buckles freely (silk),
 ## higher = stiffer weave. Stretch is always resisted at full strength.
 @export_range(0.0, 1.0, 0.05) var compression_resist: float = 0.15
@@ -57,7 +62,11 @@ extends Polygon2D
 @export_range(0.0, 1.0, 0.05) var shear: float = 0.25
 ## Soft pull toward the authored drape, in 1/s². Strong enough that the cape
 ## settles back into the drawn silhouette, weak enough that motion dominates.
-@export var shape_memory: float = 60.0
+@export var shape_memory: float = 80.0
+## One-sided vertical stiffness: a column resists FOLDING (second neighbours
+## closing in) but not straightening. Heavy woven cloth holds a smooth arc
+## instead of crumpling; this is most of what fabric "body" looks like.
+@export_range(0.0, 0.6, 0.05) var bend_stiffness: float = 0.15
 
 @export_group("Recovery")
 ## Adjacent columns may fold to this fraction of their rest spacing, measured
@@ -79,46 +88,71 @@ extends Polygon2D
 @export_group("Air")
 ## Quadratic normal-drag coefficient. The force on each cloth segment is along
 ## its normal and grows with the square of the airflow across it — orientation
-## feedback, which is where flapping comes from.
-@export var aero_coefficient: float = 0.007
+## feedback, which is where flapping comes from. At 0.007 the wind at run
+## speed was 7-14x gravity and the whole cape planed out flat; 0.0035 with
+## the airflow cap keeps the peak near 1.2x, so it streams but hangs.
+@export var aero_coefficient: float = 0.0035
+## Airflow saturation, px/s. Across-flow above this contributes no extra
+## force — quadratic drag must not grow without bound with his top speed.
+@export var airflow_cap: float = 320.0
+## Upward aero force allowed, as a fraction of cloth_gravity. Pure normal
+## drag turns a trailing cape into a KITE — tilted segments generate steady
+## lift, collar tension is the string, and the hem parks above the collar.
+## Real fabric luffs: it flutters and dumps that lift. Streaming backward is
+## unrestricted; holding the cloth UP is not.
+@export_range(0.0, 1.0, 0.05) var max_lift_fraction: float = 0.3
 ## Mild always-on turbulence as a fraction of airflow, so a steady run still
 ## shimmers. Two incommensurate frequencies, so no visible rhythm.
 @export_range(0.0, 0.5, 0.01) var turbulence: float = 0.16
 ## Hem sway injected at footfalls, so each step ripples down the fabric.
-@export var footfall_kick: float = 16.0
+## Heavy cloth ripples visibly but does not jump.
+@export var footfall_kick: float = 10.0
 ## How strongly folds darken. 0 = flat colour.
 @export_range(0.0, 0.6, 0.05) var fold_shading: float = 0.3
 
-# The lattice covers the cape texture's FULL content rectangle (v2 layer
-# alpha bbox). Fitting a narrower patch to the garment's silhouette clips the
-# artwork's wide drape out of existence; transparent cells cost nothing.
+# The lattice covers the cape texture's FULL content rectangle. Fitting a
+# narrower patch to the garment's silhouette clips the artwork's wide drape
+# out of existence; transparent cells cost nothing.
+#
+# This geometry is DERIVED at load (_derive_geometry): the content rectangle
+# from the texture's own alpha, the alignment from the Torso sprite the cape
+# sits on. Codex rebuilds the character art repeatedly; hardcoded pixel
+# numbers go stale the moment that starts. These constants are the fallback
+# for when derivation cannot run, and match the 2026-08-18 art.
 const TEX_LEFT := 352.0
 const TEX_TOP := 920.0
 const TEX_RIGHT := 1626.0
 const TEX_BOTTOM := 1696.0
-# Where the garment is actually sewn to him: the collar span, source px.
-const COLLAR_LEFT := 930.0
-const COLLAR_RIGHT := 1290.0
-# The torso guard circle, in VisualRoot-local px. The authored drape passes
-# THROUGH this circle — the cape is drawn over his belly — so cells whose rest
-# position lies inside are exempt from it (see _collide), or the guard and the
-# drape fight forever and the cloth can never come home.
-const BELLY_CENTER := Vector2(1.0, -26.0)
-const BELLY_RADIUS := 15.0
+# Where the garment is sewn to him, as FRACTIONS of the content width —
+# fractions survive a redraw, absolute pixels do not. Authored collar span
+# 930..1290 inside content 352..1626.
+const COLLAR_LEFT_FRAC := 0.4537
+const COLLAR_RIGHT_FRAC := 0.7362
 const SPRITE_SCALE := 0.040698
 const SPRITE_OFFSET := Vector2(1.424, -39.07)  # Torso sprite position in VisualRoot.
 
 var _player: PlayerController
 var _visual_root: Node2D
+# Geometry derived at load; initialised to the fallback constants.
+var _tex_left := TEX_LEFT
+var _tex_top := TEX_TOP
+var _tex_right := TEX_RIGHT
+var _tex_bottom := TEX_BOTTOM
+var _collar_left := 930.0
+var _collar_right := 1290.0
+var _canvas_center := Vector2(1024.0, 1024.0)
+var _align_offset := SPRITE_OFFSET
+var _align_scale := SPRITE_SCALE
 var _pos: Array[Vector2] = []
 var _prev: Array[Vector2] = []
 var _pinned: Array[bool] = []
 var _rest_local: Array[Vector2] = []
 var _rest_uv: PackedVector2Array = PackedVector2Array()
-var _belly_exempt: Array[bool] = []
 var _len_down: Array[float] = []
 var _len_across: Array[float] = []
 var _len_diag: Array[float] = []
+var _len_bend: Array[float] = []
+var _mass: Array[float] = []
 var _time: float = 0.0
 ## 0..1, how long he has been standing still, ramped over settle_ramp_time.
 var _calm: float = 0.0
@@ -135,8 +169,35 @@ func _ready() -> void:
 	if visuals != null:
 		visuals.footfall.connect(_on_footfall)
 
+	_derive_geometry()
 	_build_rest_lattice()
 	_reset_cloth()
+
+
+## Reads the lattice geometry from the assets themselves instead of trusting
+## hardcoded numbers: the content rectangle from the cape texture's alpha,
+## the alignment from the Torso sprite this cape must sit on. Survives art
+## rebuilds. Falls back to the authored constants when anything is missing.
+func _derive_geometry() -> void:
+	if texture != null:
+		var img := texture.get_image()
+		if img != null:
+			var used := Rect2(img.get_used_rect())
+			# A sane cape occupies a real region, not a sliver or the void.
+			if used.size.x > 50.0 and used.size.y > 50.0:
+				_tex_left = used.position.x
+				_tex_top = used.position.y
+				_tex_right = used.end.x
+				_tex_bottom = used.end.y
+				_canvas_center = Vector2(img.get_width(), img.get_height()) * 0.5
+	var width := _tex_right - _tex_left
+	_collar_left = _tex_left + width * COLLAR_LEFT_FRAC
+	_collar_right = _tex_left + width * COLLAR_RIGHT_FRAC
+
+	var torso := _visual_root.get_node_or_null("Torso") as Sprite2D
+	if torso != null:
+		_align_offset = torso.position
+		_align_scale = absf(torso.scale.x)
 
 
 func _idx(r: int, c: int) -> int:
@@ -147,23 +208,23 @@ func _build_rest_lattice() -> void:
 	_rest_local.clear()
 	_rest_uv = PackedVector2Array()
 	_pinned.clear()
-	_belly_exempt.clear()
+	_mass.clear()
 	for r in range(rows):
 		var v := float(r) / float(rows - 1)
 		for c in range(cols):
 			var u := float(c) / float(cols - 1)
-			var src := Vector2(lerpf(TEX_LEFT, TEX_RIGHT, u),
-				lerpf(TEX_TOP, TEX_BOTTOM, v))
+			var src := Vector2(lerpf(_tex_left, _tex_right, u),
+				lerpf(_tex_top, _tex_bottom, v))
 			var rest := _src_to_local(src)
 			_rest_local.append(rest)
 			_rest_uv.append(src)
 			# Sewn to him only along the collar span of the top edge.
-			_pinned.append(r == 0 and src.x >= COLLAR_LEFT and src.x <= COLLAR_RIGHT)
-			# Cells the artist drew over his belly live inside the guard
-			# circle by design; the guard must not evict them (margin so a
-			# cell resting just outside is not clipped on the way home).
-			_belly_exempt.append(
-				rest.distance_to(BELLY_CENTER) < BELLY_RADIUS + 2.0)
+			_pinned.append(r == 0 and src.x >= _collar_left and src.x <= _collar_right)
+			# A weighted hem, like a real cape: air pushes the heavy lower
+			# rows around far less than the light fabric at the shoulders.
+			# Gravity is untouched — weight changes response to wind, not
+			# how fast things fall.
+			_mass.append(lerpf(1.0, hem_mass, v))
 
 	if not _pinned.has(true):
 		# Whatever the lattice resolution, the garment must attach somewhere:
@@ -171,7 +232,7 @@ func _build_rest_lattice() -> void:
 		var best := 0
 		var best_distance := INF
 		for c in range(cols):
-			var d: float = absf(_rest_uv[c].x - (COLLAR_LEFT + COLLAR_RIGHT) * 0.5)
+			var d: float = absf(_rest_uv[c].x - (_collar_left + _collar_right) * 0.5)
 			if d < best_distance:
 				best_distance = d
 				best = c
@@ -180,6 +241,7 @@ func _build_rest_lattice() -> void:
 	_len_down.clear()
 	_len_across.clear()
 	_len_diag.clear()
+	_len_bend.clear()
 	for r in range(rows - 1):
 		for c in range(cols):
 			_len_down.append(_rest_local[_idx(r, c)].distance_to(_rest_local[_idx(r + 1, c)]))
@@ -190,10 +252,13 @@ func _build_rest_lattice() -> void:
 		for c in range(cols - 1):
 			_len_diag.append(_rest_local[_idx(r, c)].distance_to(_rest_local[_idx(r + 1, c + 1)]))
 			_len_diag.append(_rest_local[_idx(r, c + 1)].distance_to(_rest_local[_idx(r + 1, c)]))
+	for r in range(rows - 2):
+		for c in range(cols):
+			_len_bend.append(_rest_local[_idx(r, c)].distance_to(_rest_local[_idx(r + 2, c)]))
 
 
 func _src_to_local(src: Vector2) -> Vector2:
-	return SPRITE_OFFSET + (src - Vector2(1024.0, 1024.0)) * SPRITE_SCALE
+	return _align_offset + (src - _canvas_center) * _align_scale
 
 
 func _reset_cloth() -> void:
@@ -248,8 +313,14 @@ func _step(dt: float) -> void:
 			var aero := Vector2.ZERO
 			if along.length_squared() > 0.0001:
 				var normal := Vector2(along.y, -along.x).normalized()
-				var across := wind.dot(normal)
-				aero = normal * across * absf(across) * aero_coefficient
+				var across := clampf(wind.dot(normal), -airflow_cap, airflow_cap)
+				# Divided by mass: the same gust barely moves the weighted
+				# hem while it still ruffles the shoulders.
+				aero = normal * across * absf(across) \
+					* aero_coefficient / _mass[i]
+				# Luffing: cloth cannot sustain aerodynamic lift beyond a
+				# fraction of its own weight (negative y is up).
+				aero.y = maxf(aero.y, -cloth_gravity * max_lift_fraction)
 
 			# Soft shape memory toward the authored drape, in world space.
 			# Because the target moves with his body, this also produces the
@@ -284,6 +355,33 @@ func _solve_constraints() -> void:
 				_relax(_idx(r, c), _idx(r + 1, c + 1), _len_diag[k], shear)
 				_relax(_idx(r, c + 1), _idx(r + 1, c), _len_diag[k + 1], shear)
 				k += 2
+		k = 0
+		for r in range(rows - 2):
+			for c in range(cols):
+				_relax_bend(_idx(r, c), _idx(r + 2, c), _len_bend[k])
+				k += 1
+
+
+## The bending mirror of _relax: second vertical neighbours resist CLOSING
+## (the column folding sharply) and ignore stretching. Gives the drape the
+## smooth heavy arc of woven cloth instead of silk crumple.
+func _relax_bend(a: int, b: int, rest: float) -> void:
+	if bend_stiffness <= 0.0:
+		return
+	var span := _pos[b] - _pos[a]
+	var dist := span.length()
+	if dist < 0.001 or dist >= rest:
+		return
+	var correction := span * ((dist - rest) / dist) * bend_stiffness
+	if _pinned[a] and _pinned[b]:
+		return
+	if _pinned[a]:
+		_pos[b] -= correction
+	elif _pinned[b]:
+		_pos[a] += correction
+	else:
+		_pos[a] += correction * 0.5
+		_pos[b] -= correction * 0.5
 
 
 ## One-sided distance constraint: stretch is corrected at `strength`,
@@ -371,17 +469,13 @@ func _collide() -> void:
 				_pos[i].y = floor_y
 				_prev[i].y = lerpf(_prev[i].y, floor_y, 0.5)
 
-	# Body: a soft circle around his belly keeps the swinging cloth from
-	# being swallowed into the torso. Cells whose authored rest lies inside
-	# the circle are exempt — they belong there (see BELLY_CENTER).
-	var belly := _visual_root.to_global(BELLY_CENTER)
-	for i in range(_pos.size()):
-		if _pinned[i] or _belly_exempt[i]:
-			continue
-		var away := _pos[i] - belly
-		var d := away.length()
-		if d < BELLY_RADIUS and d > 0.001:
-			_pos[i] = belly + away * (BELLY_RADIUS / d)
+	# No torso guard here, deliberately. One existed — a circle around his
+	# belly — from the era when the body had a hole under the cape and cloth
+	# sinking in exposed it. The BodyBack underlay ended that: cloth behind
+	# a fully painted body is correct occlusion. What the circle actually
+	# did afterwards was inject ~900 px/s² of effective anti-gravity into
+	# the trailing cloth (0.06 px/substep of projection), which parked the
+	# lower half in a floating wad 20 px above its drape during any run.
 
 
 ## Skins the lattice: one vertex per point, one convex quad per cell, UVs from
@@ -422,13 +516,14 @@ func _refresh_polygon() -> void:
 
 func _on_footfall(strength: float) -> void:
 	# A step sends a small lateral ripple into the lower half of the fabric.
+	# The weighted hem takes proportionally less of it.
 	var kick := footfall_kick * strength * -signf(_player.velocity.x)
 	for r in range(rows / 2, rows):
 		var row_frac := float(r) / float(rows - 1)
 		for c in range(cols):
 			var i := _idx(r, c)
 			if not _pinned[i]:
-				_prev[i].x -= kick * row_frac * 0.016
+				_prev[i].x -= kick * row_frac * 0.016 / _mass[i]
 
 
 ## Test hook: world position of the hem's centre, for asserting trail/settle.
