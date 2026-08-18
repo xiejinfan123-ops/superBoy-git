@@ -4,8 +4,8 @@
 [ext_resource type="Script" uid="uid://gx83msbkdcqb" path="res://B/camera_smooth.gd" id="1_ta5nu"]
 [ext_resource type="Texture2D" uid="uid://drq5gkkdjthql" path="res://C/1/fine-edited_chroma.png" id="2_q6r6c"]
 [ext_resource type="Texture2D" uid="uid://dnltold7p5i2x" path="res://C/1/Coral_grass_pink_0000_3.png" id="3_hqns4"]
-[ext_resource type="Script" uid="uid://cjnxpn4xe7uxq" path="res://B/simple_player.gd" id="4_d21ai"]
-[ext_resource type="Texture2D" uid="uid://bm82qw2k0srn3" path="res://C/2/57A36F8DAE9E4B0F6519CADD30570ED5.png" id="4_kdubu"]
+[ext_resource type="PackedScene" path="res://B/player.tscn" id="30_player"]
+[ext_resource type="Script" path="res://B/world_reactions.gd" id="31_world"]
 [ext_resource type="Texture2D" uid="uid://f26012b0lr8x" path="res://C/1/Coral_grass_pink_0000_3_base.png" id="4_x0ka3"]
 [ext_resource type="Texture2D" uid="uid://bbdbay2fwluxn" path="res://C/1/coral_break_set_0047_1.png" id="5_0h7mo"]
 [ext_resource type="Texture2D" uid="uid://o6i5ux12jldk" path="res://C/aqueduct_corpse_0000_Layer-2.png" id="7_d21ai"]
@@ -8909,29 +8909,11 @@ rotation = 6.2831855
 scale = Vector2(0.14002404, 0.14002404)
 texture = ExtResource("2_q6r6c")
 
-[node name="CharacterBody2D" type="CharacterBody2D" parent="." unique_id=658583964]
-position = Vector2(-1594, -124)
-script = ExtResource("4_d21ai")
+[node name="Player" parent="." instance=ExtResource("30_player")]
+position = Vector2(-1830.5, -43)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D" unique_id=1127575017]
-position = Vector2(-293.5, 89)
-scale = Vector2(1.0000001, 1.0000001)
-shape = SubResource("RectangleShape2D_jovdy")
-
-[node name="57a36f8dae9e4b0f6519cadd30570ed5" type="Sprite2D" parent="CharacterBody2D" unique_id=1017535405]
-modulate = Color(0.5211406, 0.5211406, 0.5211405, 1)
-self_modulate = Color(0.8560673, 0.8560673, 0.85606724, 1)
-position = Vector2(-290, 79.000015)
-scale = Vector2(0.0868984, 0.0868984)
-texture = ExtResource("4_kdubu")
-
-[node name="PointLight2D" type="PointLight2D" parent="CharacterBody2D/57a36f8dae9e4b0f6519cadd30570ed5" unique_id=1120402369]
-position = Vector2(34.52307, 241.66135)
-scale = Vector2(23.0498, 22.00711)
-color = Color(0.92024887, 0.9172649, 0.9132015, 1)
-energy = 2.41
-texture = ExtResource("9_nr8wp")
-texture_scale = 1.5
+[node name="WorldReactions" type="Node" parent="."]
+script = ExtResource("31_world")
 
 [node name="Parallax2D黑" type="Parallax2D" parent="." unique_id=70139275]
 scroll_scale = Vector2(2, 2)
@@ -9047,6 +9029,6 @@ position = Vector2(-1836, -265)
 rotation_smoothing_enabled = true
 drag_horizontal_enabled = true
 script = ExtResource("1_ta5nu")
-target = NodePath("../CharacterBody2D")
+target = NodePath("../Player")
 dead_zone = Vector2(20, 20)
 focus_offset = Vector2(100, 40)

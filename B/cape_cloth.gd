@@ -1,0 +1,339 @@
+class_name CapeCloth
+extends Polygon2D
+
+## The cape as simulated cloth: a 2D verlet lattice skinned onto this
+## Polygon2D, textured with the cape art.
+##
+## Simulated in WORLD space, rendered in local space — when the body moves,
+## turns or falls, the cloth lags a frame behind and trailing, whipping,
+## lifting and settling all emerge from the sim.
+##
+## Four decisions carry the liveliness; all four exist because their opposites
+## were tried and read as stiff:
+##
+## 1. Only the COLLAR is pinned (~13 px), not the cloth's whole top edge.
+##    Welding the full top row makes the upper half of the cape rigid.
+## 2. Constraints are ONE-SIDED: stretching is resisted firmly, compression
+##    barely — real fabric buckles instead of pushing back. This is what lets
+##    the cloth furl on a turn rather than stay a plank.
+## 3. Damping is light, so swings overshoot and oscillate. The authored drape
+##    is preserved by a soft shape-memory pull toward the rest pose instead of
+##    by strangling the motion.
+## 4. Wind force depends on each segment's ORIENTATION (quadratic normal
+##    drag), so flapping arises as aerodynamic feedback, not a scripted sine.
+##
+## Nothing else may drive this node's transform — the sim owns the cape.
+
+@export_group("Fabric")
+## Lattice resolution. Columns give folds; rows give drape smoothness.
+@export_range(3, 7) var cols: int = 5
+@export_range(4, 12) var rows: int = 8
+## Physics substeps per frame. Livelier parameters need two for stability.
+@export_range(1, 4) var substeps: int = 2
+## Constraint passes per substep.
+@export_range(1, 8) var iterations: int = 3
+## Fraction of velocity kept each substep. High = momentum survives, cloth
+## overshoots and oscillates. The shape-memory pull is what stops it drifting.
+@export_range(0.9, 1.0, 0.005) var damping: float = 0.985
+## Residual cloth gravity, px/s². Deliberately tiny: the artwork already
+## depicts the drape hanging at gravity equilibrium, so simulating full
+## gravity on top of it double-counts and drags the cloth 20+ px below the
+## drawn silhouette. Lift during falls comes from the airflow term instead.
+@export var cloth_gravity: float = 150.0
+## How firmly compressed edges resist. ~0 = fabric buckles freely (silk),
+## higher = stiffer weave. Stretch is always resisted at full strength.
+@export_range(0.0, 1.0, 0.05) var compression_resist: float = 0.15
+## Diagonal (shear) stiffness while stretching.
+@export_range(0.0, 1.0, 0.05) var shear: float = 0.25
+## Soft pull toward the authored drape, in 1/s². Strong enough that the cape
+## settles back into the drawn silhouette, weak enough that motion dominates.
+@export var shape_memory: float = 60.0
+
+@export_group("Air")
+## Quadratic normal-drag coefficient. The force on each cloth segment is along
+## its normal and grows with the square of the airflow across it — orientation
+## feedback, which is where flapping comes from.
+@export var aero_coefficient: float = 0.007
+## Mild always-on turbulence as a fraction of airflow, so a steady run still
+## shimmers. Two incommensurate frequencies, so no visible rhythm.
+@export_range(0.0, 0.5, 0.01) var turbulence: float = 0.16
+## Hem sway injected at footfalls, so each step ripples down the fabric.
+@export var footfall_kick: float = 16.0
+## How strongly folds darken. 0 = flat colour.
+@export_range(0.0, 0.6, 0.05) var fold_shading: float = 0.3
+
+# The lattice covers the cape texture's FULL content rectangle (v2 layer
+# alpha bbox). Fitting a narrower patch to the garment's silhouette clips the
+# artwork's wide drape out of existence; transparent cells cost nothing.
+const TEX_LEFT := 352.0
+const TEX_TOP := 920.0
+const TEX_RIGHT := 1626.0
+const TEX_BOTTOM := 1696.0
+# Where the garment is actually sewn to him: the collar span, source px.
+const COLLAR_LEFT := 930.0
+const COLLAR_RIGHT := 1290.0
+const SPRITE_SCALE := 0.040698
+const SPRITE_OFFSET := Vector2(1.424, -39.07)  # Torso sprite position in VisualRoot.
+
+var _player: PlayerController
+var _visual_root: Node2D
+var _pos: Array[Vector2] = []
+var _prev: Array[Vector2] = []
+var _pinned: Array[bool] = []
+var _rest_local: Array[Vector2] = []
+var _rest_uv: PackedVector2Array = PackedVector2Array()
+var _len_down: Array[float] = []
+var _len_across: Array[float] = []
+var _len_diag: Array[float] = []
+var _time: float = 0.0
+
+
+func _ready() -> void:
+	# Unlit: his lantern glow sits dead-centre on the fabric and its additive
+	# light washes the dark cloth pale (measured 59 -> 181).
+	light_mask = 0
+	_visual_root = get_parent() as Node2D
+	_player = _visual_root.get_parent() as PlayerController
+
+	var visuals := _visual_root as PlayerVisuals
+	if visuals != null:
+		visuals.footfall.connect(_on_footfall)
+
+	_build_rest_lattice()
+	_reset_cloth()
+
+
+func _idx(r: int, c: int) -> int:
+	return r * cols + c
+
+
+func _build_rest_lattice() -> void:
+	_rest_local.clear()
+	_rest_uv = PackedVector2Array()
+	_pinned.clear()
+	for r in range(rows):
+		var v := float(r) / float(rows - 1)
+		for c in range(cols):
+			var u := float(c) / float(cols - 1)
+			var src := Vector2(lerpf(TEX_LEFT, TEX_RIGHT, u),
+				lerpf(TEX_TOP, TEX_BOTTOM, v))
+			_rest_local.append(_src_to_local(src))
+			_rest_uv.append(src)
+			# Sewn to him only along the collar span of the top edge.
+			_pinned.append(r == 0 and src.x >= COLLAR_LEFT and src.x <= COLLAR_RIGHT)
+
+	if not _pinned.has(true):
+		# Whatever the lattice resolution, the garment must attach somewhere:
+		# fall back to the top-row point nearest the collar's centre.
+		var best := 0
+		var best_distance := INF
+		for c in range(cols):
+			var d: float = absf(_rest_uv[c].x - (COLLAR_LEFT + COLLAR_RIGHT) * 0.5)
+			if d < best_distance:
+				best_distance = d
+				best = c
+		_pinned[best] = true
+
+	_len_down.clear()
+	_len_across.clear()
+	_len_diag.clear()
+	for r in range(rows - 1):
+		for c in range(cols):
+			_len_down.append(_rest_local[_idx(r, c)].distance_to(_rest_local[_idx(r + 1, c)]))
+	for r in range(rows):
+		for c in range(cols - 1):
+			_len_across.append(_rest_local[_idx(r, c)].distance_to(_rest_local[_idx(r, c + 1)]))
+	for r in range(rows - 1):
+		for c in range(cols - 1):
+			_len_diag.append(_rest_local[_idx(r, c)].distance_to(_rest_local[_idx(r + 1, c + 1)]))
+			_len_diag.append(_rest_local[_idx(r, c + 1)].distance_to(_rest_local[_idx(r + 1, c)]))
+
+
+func _src_to_local(src: Vector2) -> Vector2:
+	return SPRITE_OFFSET + (src - Vector2(1024.0, 1024.0)) * SPRITE_SCALE
+
+
+func _reset_cloth() -> void:
+	_pos.clear()
+	_prev.clear()
+	for rest in _rest_local:
+		var world := _visual_root.to_global(rest)
+		_pos.append(world)
+		_prev.append(world)
+	_refresh_polygon()
+
+
+func _physics_process(delta: float) -> void:
+	if _player == null:
+		return
+	var dt := delta / float(substeps)
+	for _s in range(substeps):
+		_step(dt)
+	_refresh_polygon()
+
+
+func _step(dt: float) -> void:
+	_time += dt
+
+	for i in range(_pos.size()):
+		if _pinned[i]:
+			_pos[i] = _visual_root.to_global(_rest_local[i])
+			_prev[i] = _pos[i]
+
+	# Airflow over the cloth: his motion through the air, plus a little
+	# non-rhythmic turbulence so a steady run still shimmers.
+	var wind := Vector2(-_player.velocity.x, -_player.velocity.y * 0.4)
+	var gust := wind.length() * turbulence
+	wind += Vector2(sin(_time * 7.3) + sin(_time * 11.9) * 0.5,
+		sin(_time * 9.1) * 0.4) * gust * 0.5
+
+	for r in range(rows):
+		for c in range(cols):
+			var i := _idx(r, c)
+			if _pinned[i]:
+				continue
+			var current := _pos[i]
+			var velocity := (current - _prev[i]) * damping
+			_prev[i] = current
+
+			# Quadratic normal drag: the force is along the cloth's local
+			# normal and scales with the square of the airflow across it, so
+			# a segment's orientation feeds back into its own motion.
+			var below: Vector2 = _pos[_idx(mini(r + 1, rows - 1), c)]
+			var above: Vector2 = _pos[_idx(maxi(r - 1, 0), c)]
+			var along := (below - above)
+			var aero := Vector2.ZERO
+			if along.length_squared() > 0.0001:
+				var normal := Vector2(along.y, -along.x).normalized()
+				var across := wind.dot(normal)
+				aero = normal * across * absf(across) * aero_coefficient
+
+			# Soft shape memory toward the authored drape, in world space.
+			# Because the target moves with his body, this also produces the
+			# trailing lag — the cloth is always chasing where it "should" be.
+			var target := _visual_root.to_global(_rest_local[i])
+			var restore := (target - current) * shape_memory
+
+			var acceleration := Vector2(0.0, cloth_gravity) + aero + restore
+			_pos[i] = current + velocity + acceleration * dt * dt
+
+	_solve_constraints()
+	_collide()
+
+
+func _solve_constraints() -> void:
+	for _pass in range(iterations):
+		var k := 0
+		for r in range(rows - 1):
+			for c in range(cols):
+				_relax(_idx(r, c), _idx(r + 1, c), _len_down[k], 1.0)
+				k += 1
+		k = 0
+		for r in range(rows):
+			for c in range(cols - 1):
+				_relax(_idx(r, c), _idx(r, c + 1), _len_across[k], 1.0)
+				k += 1
+		k = 0
+		for r in range(rows - 1):
+			for c in range(cols - 1):
+				_relax(_idx(r, c), _idx(r + 1, c + 1), _len_diag[k], shear)
+				_relax(_idx(r, c + 1), _idx(r + 1, c), _len_diag[k + 1], shear)
+				k += 2
+
+
+## One-sided distance constraint: stretch is corrected at `strength`,
+## compression only at compression_resist — fabric buckles, it does not push.
+func _relax(a: int, b: int, rest: float, strength: float) -> void:
+	var span := _pos[b] - _pos[a]
+	var dist := span.length()
+	if dist < 0.001:
+		return
+	var effective := strength if dist > rest else strength * compression_resist
+	var correction := span * ((dist - rest) / dist) * effective
+	var a_pinned := _pinned[a]
+	var b_pinned := _pinned[b]
+	if a_pinned and b_pinned:
+		return
+	if a_pinned:
+		_pos[b] -= correction
+	elif b_pinned:
+		_pos[a] += correction
+	else:
+		_pos[a] += correction * 0.5
+		_pos[b] -= correction * 0.5
+
+
+func _collide() -> void:
+	# Ground: the fabric drapes on the floor instead of passing through.
+	if _player.is_on_floor():
+		var floor_y := _player.global_position.y + 39.375
+		for i in range(_pos.size()):
+			if not _pinned[i] and _pos[i].y > floor_y:
+				_pos[i].y = floor_y
+				_prev[i].y = lerpf(_prev[i].y, floor_y, 0.5)
+
+	# Body: a soft circle around his belly keeps the swinging cloth from
+	# being swallowed into the torso.
+	var belly := _visual_root.to_global(Vector2(1.0, -26.0))
+	var radius := 15.0
+	for i in range(_pos.size()):
+		if _pinned[i]:
+			continue
+		var away := _pos[i] - belly
+		var d := away.length()
+		if d < radius and d > 0.001:
+			_pos[i] = belly + away * (radius / d)
+
+
+## Skins the lattice: one vertex per point, one convex quad per cell, UVs from
+## the rest lattice. Quads darken as they compress — fold shading.
+func _refresh_polygon() -> void:
+	var verts := PackedVector2Array()
+	var colors := PackedColorArray()
+
+	for r in range(rows):
+		for c in range(cols):
+			var i := _idx(r, c)
+			verts.append(_rest_local[i] if _pinned[i] else _visual_root.to_local(_pos[i]))
+
+	for r in range(rows):
+		for c in range(cols):
+			var brightness := 1.0
+			if fold_shading > 0.0 and c > 0 and c < cols - 1:
+				var rest_span: float = _rest_local[_idx(r, c + 1)].distance_to(
+					_rest_local[_idx(r, c - 1)])
+				var now_span: float = verts[_idx(r, c + 1)].distance_to(
+					verts[_idx(r, c - 1)])
+				var compression := clampf(1.0 - now_span / maxf(rest_span, 0.001),
+					0.0, 1.0)
+				brightness = 1.0 - fold_shading * compression
+			colors.append(Color(brightness, brightness, brightness, 1.0))
+
+	var quads: Array = []
+	for r in range(rows - 1):
+		for c in range(cols - 1):
+			quads.append(PackedInt32Array([
+				_idx(r, c), _idx(r, c + 1), _idx(r + 1, c + 1), _idx(r + 1, c)]))
+
+	polygon = verts
+	uv = _rest_uv
+	vertex_colors = colors
+	polygons = quads
+
+
+func _on_footfall(strength: float) -> void:
+	# A step sends a small lateral ripple into the lower half of the fabric.
+	var kick := footfall_kick * strength * -signf(_player.velocity.x)
+	for r in range(rows / 2, rows):
+		var row_frac := float(r) / float(rows - 1)
+		for c in range(cols):
+			var i := _idx(r, c)
+			if not _pinned[i]:
+				_prev[i].x -= kick * row_frac * 0.016
+
+
+## Test hook: world position of the hem's centre, for asserting trail/settle.
+func hem_world_position() -> Vector2:
+	var left: Vector2 = _pos[_idx(rows - 1, 0)]
+	var right: Vector2 = _pos[_idx(rows - 1, cols - 1)]
+	return (left + right) * 0.5
