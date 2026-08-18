@@ -24,6 +24,11 @@ shape = SubResource("RectangleShape2D_player")
 position = Vector2(0, 39.375)
 script = ExtResource("2_vis")
 
+[node name="BodyBack" type="Sprite2D" parent="VisualRoot"]
+position = Vector2(1.424, -39.07)
+scale = Vector2(0.040698, 0.040698)
+texture = ExtResource("3_torso")
+
 [node name="Cape" type="Polygon2D" parent="VisualRoot"]
 texture = ExtResource("10_capetex")
 script = ExtResource("9_capecloth")
