@@ -88,8 +88,7 @@ def main() -> int:
 
     src_op = source.getchannel("A").point(lambda v: 1 if v > 128 else 0)
     out_op = stacked.getchannel("A").point(lambda v: 1 if v > 128 else 0)
-    lost = sum(1 for a, b in zip(src_op.get_flattened_data(),
-                                 out_op.get_flattened_data()) if a and not b)
+    lost = sum(1 for a, b in zip(src_op.getdata(), out_op.getdata()) if a and not b)
     print(f"\n  pixels lost when the pieces are stacked back: {lost}")
     if lost:
         print("  FAIL — the cut is dropping artwork")

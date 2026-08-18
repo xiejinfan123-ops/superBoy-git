@@ -58,7 +58,7 @@ def enclosed_holes(mask: Image.Image) -> int:
     flood = mask.point(lambda v: 255 - v)
     for corner in ((0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1)):
         ImageDraw.floodfill(flood, corner, 128)
-    return sum(1 for v in flood.point(lambda v: 1 if v == 255 else 0).get_flattened_data() if v)
+    return sum(1 for v in flood.point(lambda v: 1 if v == 255 else 0).getdata() if v)
 
 
 def longest_straight_edge(mask: Image.Image) -> int:
