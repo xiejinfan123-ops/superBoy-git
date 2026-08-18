@@ -36,6 +36,17 @@ python3 tools/peer_log.py list codex
 python3 tools/peer_log.py read codex --last
 ```
 
+**Commit only the files you touched, named explicitly** — `git commit -- <files>`,
+never a blanket `git add -A`. The other agent may have work staged or in the
+tree; a blanket commit sweeps their files into your commit under your message.
+And don't leave your own work sitting staged while the other agent is active —
+that is how it gets swept (f64070a).
+
+**只提交你动过的文件，明确点名** —— `git commit -- <文件>`，
+绝不要一揽子 `git add -A`。对方可能有工作在暂存区或工作区里；
+一揽子提交会把他们的文件卷进你的提交、挂上你的信息。
+也别让自己的工作在对方活跃时停在暂存区 —— 那正是被卷走的方式（f64070a）。
+
 Deep requirement documents go in `docs/handoff/YYYY-MM-DD-topic.md`. Write
 them as proposals, not orders, with a concrete acceptance test — a script
 where possible, since the script is the real spec.

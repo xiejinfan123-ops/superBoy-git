@@ -35,6 +35,17 @@ python3 tools/peer_log.py list claude
 python3 tools/peer_log.py read claude --last
 ```
 
+**Commit only the files you touched, named explicitly** — `git commit -- <files>`,
+never a blanket `git add -A`. The other agent may have work staged or in the
+tree; a blanket commit sweeps their files into your commit under your message.
+This has already happened once (f64070a absorbed Claude's staged cape physics
+into a camera commit).
+
+**只提交你动过的文件，明确点名** —— `git commit -- <文件>`，
+绝不要一揽子 `git add -A`。对方可能有工作在暂存区或工作区里；
+一揽子提交会把他们的文件卷进你的提交、挂上你的信息。
+这已经发生过一次（f64070a 把 Claude 暂存的披风物理卷进了一个相机提交）。
+
 Requests from Claude in `docs/handoff/` are proposals, not orders. If one is
 wrong, or you see a better way, say so and do it your way.
 
