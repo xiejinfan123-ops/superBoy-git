@@ -22,6 +22,16 @@ extends Polygon2D
 ## 4. Wind force depends on each segment's ORIENTATION (quadratic normal
 ##    drag), so flapping arises as aerodynamic feedback, not a scripted sine.
 ##
+## Two guards keep the chaos temporary, because with buckling this free a
+## crossed pair of columns is otherwise a STABLE equilibrium the shape-memory
+## spring cannot escape — tangles used to be permanent:
+##
+## 5. Adjacent columns may fold close but never pass through each other,
+##    corrected gradually so a turn still reads as a swirl, not a snap.
+## 6. Standing still ramps up a gentle homing that glides the cloth back to
+##    the authored drape; any movement kills it instantly, so it never
+##    dampens motion — it only guarantees the return.
+##
 ## Nothing else may drive this node's transform — the sim owns the cape.
 
 @export_group("Fabric")
@@ -49,6 +59,23 @@ extends Polygon2D
 ## settles back into the drawn silhouette, weak enough that motion dominates.
 @export var shape_memory: float = 60.0
 
+@export_group("Recovery")
+## Adjacent columns may fold to this fraction of their rest spacing, measured
+## along the row's rest axis, but never closer — folding stays free,
+## passing through does not. This is what makes tangles impossible to keep.
+@export_range(0.0, 0.6, 0.05) var min_lateral_frac: float = 0.3
+## Fraction of an ordering violation corrected per substep. Below 1.0 the
+## un-crossing is spread over several frames, so a direction flip still
+## swirls the fabric around him instead of snapping it to the other side.
+@export_range(0.05, 1.0, 0.05) var uncross_rate: float = 0.25
+## Extra pull toward the authored drape while he stands calm, in 1/s.
+## The spring alone can be trapped by a fold; this guarantees the way home.
+@export var settle_homing: float = 3.5
+## Seconds of standing still before the homing reaches full strength.
+@export var settle_ramp_time: float = 0.5
+## Below this speed, in px/s, he counts as standing still for homing.
+@export var settle_speed_threshold: float = 30.0
+
 @export_group("Air")
 ## Quadratic normal-drag coefficient. The force on each cloth segment is along
 ## its normal and grows with the square of the airflow across it — orientation
@@ -72,6 +99,12 @@ const TEX_BOTTOM := 1696.0
 # Where the garment is actually sewn to him: the collar span, source px.
 const COLLAR_LEFT := 930.0
 const COLLAR_RIGHT := 1290.0
+# The torso guard circle, in VisualRoot-local px. The authored drape passes
+# THROUGH this circle — the cape is drawn over his belly — so cells whose rest
+# position lies inside are exempt from it (see _collide), or the guard and the
+# drape fight forever and the cloth can never come home.
+const BELLY_CENTER := Vector2(1.0, -26.0)
+const BELLY_RADIUS := 15.0
 const SPRITE_SCALE := 0.040698
 const SPRITE_OFFSET := Vector2(1.424, -39.07)  # Torso sprite position in VisualRoot.
 
@@ -82,10 +115,13 @@ var _prev: Array[Vector2] = []
 var _pinned: Array[bool] = []
 var _rest_local: Array[Vector2] = []
 var _rest_uv: PackedVector2Array = PackedVector2Array()
+var _belly_exempt: Array[bool] = []
 var _len_down: Array[float] = []
 var _len_across: Array[float] = []
 var _len_diag: Array[float] = []
 var _time: float = 0.0
+## 0..1, how long he has been standing still, ramped over settle_ramp_time.
+var _calm: float = 0.0
 
 
 func _ready() -> void:
@@ -111,16 +147,23 @@ func _build_rest_lattice() -> void:
 	_rest_local.clear()
 	_rest_uv = PackedVector2Array()
 	_pinned.clear()
+	_belly_exempt.clear()
 	for r in range(rows):
 		var v := float(r) / float(rows - 1)
 		for c in range(cols):
 			var u := float(c) / float(cols - 1)
 			var src := Vector2(lerpf(TEX_LEFT, TEX_RIGHT, u),
 				lerpf(TEX_TOP, TEX_BOTTOM, v))
-			_rest_local.append(_src_to_local(src))
+			var rest := _src_to_local(src)
+			_rest_local.append(rest)
 			_rest_uv.append(src)
 			# Sewn to him only along the collar span of the top edge.
 			_pinned.append(r == 0 and src.x >= COLLAR_LEFT and src.x <= COLLAR_RIGHT)
+			# Cells the artist drew over his belly live inside the guard
+			# circle by design; the guard must not evict them (margin so a
+			# cell resting just outside is not clipped on the way home).
+			_belly_exempt.append(
+				rest.distance_to(BELLY_CENTER) < BELLY_RADIUS + 2.0)
 
 	if not _pinned.has(true):
 		# Whatever the lattice resolution, the garment must attach somewhere:
@@ -219,6 +262,8 @@ func _step(dt: float) -> void:
 
 	_solve_constraints()
 	_collide()
+	_keep_column_order()
+	_settle_home(dt)
 
 
 func _solve_constraints() -> void:
@@ -263,6 +308,60 @@ func _relax(a: int, b: int, rest: float, strength: float) -> void:
 		_pos[b] -= correction * 0.5
 
 
+## Adjacent columns must keep their left-to-right order along each row.
+## Measured against the ROW'S REST AXIS in world space, so a facing flip
+## (which mirrors the rest lattice) is handled for free. Correction is
+## fractional per substep: crossings heal over a few frames instead of
+## snapping, which is what preserves the turn furl.
+func _keep_column_order() -> void:
+	for r in range(rows):
+		for c in range(cols - 1):
+			var a := _idx(r, c)
+			var b := _idx(r, c + 1)
+			if _pinned[a] and _pinned[b]:
+				continue
+			var rest_a := _visual_root.to_global(_rest_local[a])
+			var rest_b := _visual_root.to_global(_rest_local[b])
+			var axis := rest_b - rest_a
+			var rest_len := axis.length()
+			if rest_len < 0.001:
+				continue
+			axis /= rest_len
+			var proj := (_pos[b] - _pos[a]).dot(axis)
+			var min_sep := rest_len * min_lateral_frac
+			if proj >= min_sep:
+				continue
+			var push := (min_sep - proj) * uncross_rate
+			if _pinned[a]:
+				_pos[b] += axis * push
+			elif _pinned[b]:
+				_pos[a] -= axis * push
+			else:
+				_pos[a] -= axis * push * 0.5
+				_pos[b] += axis * push * 0.5
+
+
+## While he stands still, glide every point back to the authored drape.
+## Ramps in over settle_ramp_time; any movement resets it to zero instantly,
+## so gameplay motion is never dampened. _prev is pulled by the same weight,
+## which keeps the implied verlet velocity from spiking.
+func _settle_home(dt: float) -> void:
+	var standing := _player.is_on_floor() \
+		and _player.velocity.length() < settle_speed_threshold
+	if standing:
+		_calm = minf(_calm + dt / maxf(settle_ramp_time, 0.01), 1.0)
+	else:
+		_calm = 0.0
+		return
+	var weight := 1.0 - exp(-settle_homing * _calm * dt)
+	for i in range(_pos.size()):
+		if _pinned[i]:
+			continue
+		var target := _visual_root.to_global(_rest_local[i])
+		_pos[i] = _pos[i].lerp(target, weight)
+		_prev[i] = _prev[i].lerp(target, weight)
+
+
 func _collide() -> void:
 	# Ground: the fabric drapes on the floor instead of passing through.
 	if _player.is_on_floor():
@@ -273,16 +372,16 @@ func _collide() -> void:
 				_prev[i].y = lerpf(_prev[i].y, floor_y, 0.5)
 
 	# Body: a soft circle around his belly keeps the swinging cloth from
-	# being swallowed into the torso.
-	var belly := _visual_root.to_global(Vector2(1.0, -26.0))
-	var radius := 15.0
+	# being swallowed into the torso. Cells whose authored rest lies inside
+	# the circle are exempt — they belong there (see BELLY_CENTER).
+	var belly := _visual_root.to_global(BELLY_CENTER)
 	for i in range(_pos.size()):
-		if _pinned[i]:
+		if _pinned[i] or _belly_exempt[i]:
 			continue
 		var away := _pos[i] - belly
 		var d := away.length()
-		if d < radius and d > 0.001:
-			_pos[i] = belly + away * (radius / d)
+		if d < BELLY_RADIUS and d > 0.001:
+			_pos[i] = belly + away * (BELLY_RADIUS / d)
 
 
 ## Skins the lattice: one vertex per point, one convex quad per cell, UVs from
@@ -337,3 +436,31 @@ func hem_world_position() -> Vector2:
 	var left: Vector2 = _pos[_idx(rows - 1, 0)]
 	var right: Vector2 = _pos[_idx(rows - 1, cols - 1)]
 	return (left + right) * 0.5
+
+
+## Test hook: worst world-space distance between any free point and its
+## authored drape position, for asserting the cape actually came home.
+func max_rest_deviation() -> float:
+	var worst := 0.0
+	for i in range(_pos.size()):
+		if _pinned[i]:
+			continue
+		var target := _visual_root.to_global(_rest_local[i])
+		worst = maxf(worst, _pos[i].distance_to(target))
+	return worst
+
+
+## Test hook: true if any adjacent pair of columns has actually crossed —
+## sits at or past zero separation along its row's rest axis.
+func columns_crossed() -> bool:
+	for r in range(rows):
+		for c in range(cols - 1):
+			var a := _idx(r, c)
+			var b := _idx(r, c + 1)
+			var axis := _visual_root.to_global(_rest_local[b]) \
+				- _visual_root.to_global(_rest_local[a])
+			if axis.length() < 0.001:
+				continue
+			if (_pos[b] - _pos[a]).dot(axis.normalized()) <= 0.0:
+				return true
+	return false

@@ -65,6 +65,7 @@ func _main() -> void:
 	await _run("cape settles when stopped", _test_cape_settles_when_stopped)
 	await _run("cape never goes below the floor", _test_cape_never_goes_below_the_floor)
 	await _run("cape stays finite under abuse", _test_cape_stays_finite_under_abuse)
+	await _run("cape comes home untangled after abuse", _test_cape_comes_home_untangled)
 	await _run("world scenery is wired", _test_world_scenery_is_wired)
 	await _run("foliage bends when run through and recovers", _test_foliage_bends_when_run_through_and_recovers)
 	await _run("main scene player stands on real ground", _test_main_scene_player_stands_on_real_ground)
@@ -1060,6 +1061,37 @@ func _test_cape_stays_finite_under_abuse(errors: Array) -> bool:
 	if (hem - player.global_position).length() > 200.0:
 		errors.append("cape stretched absurdly far from the body: %f px"
 			% (hem - player.global_position).length())
+	return true
+
+
+## The settle test above only proves the hem stops MOVING — a cape frozen in
+## a tangled shape passes it. This one demands the actual return: after
+## whiplash, standing still must bring every point back near the authored
+## drape, with no pair of columns left crossed.
+func _test_cape_comes_home_untangled(errors: Array) -> bool:
+	_make_floor(FLOOR_TOP, -6000.0, 6000.0)
+	var player := _spawn_player(Vector2(-1000.0, FLOOR_TOP - COLLIDER_HALF_HEIGHT))
+	var cape: CapeCloth = player.get_node("VisualRoot/Cape")
+	var fake: FakeInput = player.input
+
+	# Whiplash: hard direction reversals with jumps mixed in.
+	for cycle in range(8):
+		fake.move_axis = 1.0 if cycle % 2 == 0 else -1.0
+		fake.jump_just_pressed = cycle % 2 == 0
+		fake.jump_held = cycle % 2 == 0
+		await _step(15)
+		fake.clear_edges()
+
+	# Then stand still and give it three seconds to come home.
+	fake.move_axis = 0.0
+	fake.jump_held = false
+	await _step(180)
+
+	if cape.columns_crossed():
+		errors.append("cloth columns still crossed after settling")
+	var deviation := cape.max_rest_deviation()
+	if deviation > 10.0:
+		errors.append("cape settled %f px from its drawn drape" % deviation)
 	return true
 
 
