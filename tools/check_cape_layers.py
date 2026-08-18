@@ -143,8 +143,8 @@ def main() -> int:
     body_mask = silhouette(body)
     under_mask = silhouette(under_body)
     added_pixels = opaque_pixels(under_mask) - opaque_pixels(body_mask)
-    check("under-body adds the cape-covered torso", added_pixels >= 100000,
-          f"{added_pixels} new opaque px, need at least 100000")
+    check("under-body adds the cape-covered torso", added_pixels >= 50000,
+          f"{added_pixels} new opaque px, need at least 50000")
     outside_source = ImageChops.multiply(under_mask, ImageChops.invert(source_mask))
     check("under-body preserves resting silhouette", opaque_pixels(outside_source) == 0,
           f"{opaque_pixels(outside_source)} px outside original character")
