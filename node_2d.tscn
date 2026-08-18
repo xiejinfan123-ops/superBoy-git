@@ -12,8 +12,8 @@
 [ext_resource type="Texture2D" uid="uid://d1ejx70lpvueg" path="res://C/1/Coral_grass_pink_0001_2.png" id="9_0h7mo"]
 [ext_resource type="Texture2D" uid="uid://mogqosjf6uff" path="res://C/1/coral_break_set_0043_1.png" id="10_x0ka3"]
 [ext_resource type="Texture2D" uid="uid://cji4npstbuyox" path="res://C/1/coral_break_set_0046_1.png" id="13_0h7mo"]
-[ext_resource type="Texture2D" uid="uid://bg3nivp26004a" path="res://D/spotlight_beam.svg" id="14_d2bti"]
 [ext_resource type="Texture2D" uid="uid://b7q8jyqd5il4p" path="res://C/hornet_last_dive0006.png" id="16_flf07"]
+[ext_resource type="Texture2D" uid="uid://btohfr1keonka" path="res://D/parallelogram_light.png" id="18_7vxoj"]
 [ext_resource type="Texture2D" uid="uid://c0l48fadlkqmq" path="res://C/3/bone_moss_bg_combined_bone_type.png" id="18_fs4d3"]
 [ext_resource type="Texture2D" uid="uid://bhkiawn0g3oxd" path="res://C/3/bone_moss_bg_combined.png" id="19_7vxoj"]
 [ext_resource type="Texture2D" uid="uid://c4dui0w686wv" path="res://C/3/bone_moss_bg_combined_clover_02.png" id="20_ei405"]
@@ -9016,12 +9016,13 @@ scale = Vector2(0.5444885, 0.54448843)
 scroll_scale = Vector2(1.4, 1.4)
 
 [node name="PointLight2D" type="PointLight2D" parent="Parallax2D" unique_id=572812845]
-position = Vector2(-958.931, 443.44904)
-rotation = -1.5620698
-scale = Vector2(1.8365861, 1.8365859)
+position = Vector2(-1097.1638, 919.7733)
+rotation = -3.5342917
+scale = Vector2(3.1165192, 1.6523671)
 color = Color(0.97882634, 0.8939346, 0.8459876, 1)
-energy = 3.26
-texture = ExtResource("14_d2bti")
+energy = 4.98
+texture = ExtResource("18_7vxoj")
+texture_scale = 1.78
 
 [node name="1786819538751" type="Sprite2D" parent="." unique_id=188074487]
 position = Vector2(5691, -311)
