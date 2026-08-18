@@ -23,6 +23,7 @@ ART = Path(__file__).resolve().parent.parent / "C"
 SOURCE = ART / "1786820354134.png"
 CAPE = ART / "char_cape.png"
 BODY = ART / "char_body_no_cape.png"
+UNDER_BODY = ART / "char_body_under_cape.png"
 
 PIVOT = (1080, 950)
 ROTATIONS = (10.0, -10.0)
@@ -40,6 +41,10 @@ def check(label: str, ok: bool, detail: str) -> None:
 
 def silhouette(img: Image.Image) -> Image.Image:
     return img.getchannel("A").point(lambda v: 255 if v > 128 else 0)
+
+
+def opaque_pixels(mask: Image.Image) -> int:
+    return sum(v > 128 for v in mask.getdata())
 
 
 def stack(under: Image.Image, over: Image.Image) -> Image.Image:
@@ -91,7 +96,7 @@ def longest_straight_edge(mask: Image.Image) -> int:
 
 
 def main() -> int:
-    for path in (SOURCE, CAPE, BODY):
+    for path in (SOURCE, CAPE, BODY, UNDER_BODY):
         if not path.exists():
             print(f"missing required file: {path}")
             return 1
@@ -99,10 +104,13 @@ def main() -> int:
     source = Image.open(SOURCE).convert("RGBA")
     cape = Image.open(CAPE).convert("RGBA")
     body = Image.open(BODY).convert("RGBA")
+    under_body = Image.open(UNDER_BODY).convert("RGBA")
 
     print("\n1. Canvas size and alignment")
     check("cape canvas", cape.size == source.size, f"{cape.size} vs source {source.size}")
     check("body canvas", body.size == source.size, f"{body.size} vs source {source.size}")
+    check("under-body canvas", under_body.size == source.size,
+          f"{under_body.size} vs source {source.size}")
 
     print("\n2. Stacking the two layers reproduces the original")
     print("   (cape belongs BEHIND the body: his belly overlaps the cape in the source)")
@@ -126,9 +134,40 @@ def main() -> int:
         holes = enclosed_holes(silhouette(stack(rotated, body)))
         check(f"no holes at {angle:+.0f} deg", holes < 200, f"{holes} px of enclosed hole")
 
-    print("\n5. The body alone still reads as the whole character")
+    print("\n5. The foreground body alone still reads as the whole character")
     body_holes = enclosed_holes(silhouette(body))
     check("body has no internal tear", body_holes < 200, f"{body_holes} px of enclosed hole")
+
+    print("\n6. The cape has a real, complete body underneath it")
+    source_mask = silhouette(source)
+    body_mask = silhouette(body)
+    under_mask = silhouette(under_body)
+    added_pixels = opaque_pixels(under_mask) - opaque_pixels(body_mask)
+    check("under-body adds the cape-covered torso", added_pixels >= 100000,
+          f"{added_pixels} new opaque px, need at least 100000")
+    outside_source = ImageChops.multiply(under_mask, ImageChops.invert(source_mask))
+    check("under-body preserves resting silhouette", opaque_pixels(outside_source) == 0,
+          f"{opaque_pixels(outside_source)} px outside original character")
+
+    # This is the regression that the old checker was missing. At each wide
+    # swing, look only at pixels that were cape at rest, are no longer cape or
+    # foreground body, and belong to the concealed torso. Those pixels must be
+    # supplied by the fixed under-body layer, never by transparent background.
+    for angle in (25.0, -25.0):
+        moved = cape.rotate(angle, center=PIVOT, resample=Image.BICUBIC)
+        moved_mask = silhouette(moved)
+        foreground_mask = ImageChops.lighter(moved_mask, body_mask)
+        newly_exposed = ImageChops.multiply(
+            under_mask, ImageChops.subtract(silhouette(cape), foreground_mask))
+        exposed_count = opaque_pixels(newly_exposed)
+        composed = stack(stack(under_body, moved), body)
+        transparent_exposure = ImageChops.multiply(
+            newly_exposed, ImageChops.invert(silhouette(composed)))
+        check(f"under-body is exposed at {angle:+.0f} deg", exposed_count >= 5000,
+              f"{exposed_count} px newly exposed, need at least 5000")
+        check(f"no transparent torso at {angle:+.0f} deg",
+              opaque_pixels(transparent_exposure) == 0,
+              f"{opaque_pixels(transparent_exposure)} transparent exposed px")
 
     print()
     if failures:

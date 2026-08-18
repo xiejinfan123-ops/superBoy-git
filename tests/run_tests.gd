@@ -188,12 +188,28 @@ func _test_player_scene_geometry(errors: Array) -> bool:
 		errors.append("torso must use the cut torso layer, got %s"
 			% sprite.texture.resource_path)
 
+	# The animated cloth must have a separately authored, complete body below
+	# it. Reusing the foreground cutout here leaves the cape-covered torso
+	# transparent the instant cloth moves away.
+	var body_back := player.get_node_or_null("VisualRoot/BodyBack") as Sprite2D
+	if body_back == null:
+		errors.append("missing full body layer behind the cape")
+	elif body_back.texture == null \
+		or body_back.texture.resource_path != "res://C/char_body_under_cape.png":
+		errors.append("body back must use the complete under-cape body art")
+	elif body_back.position.distance_to(sprite.position) > 0.01 \
+		or body_back.scale.distance_to(sprite.scale) > 0.0001:
+		errors.append("body back must align exactly with the foreground torso")
+
 	# The cape is simulated cloth (CapeCloth on a Polygon2D), not a sprite.
 	var cape := player.get_node_or_null("VisualRoot/Cape") as CapeCloth
 	if cape == null:
 		errors.append("missing CapeCloth cape node")
 	elif cape.texture == null or cape.texture.resource_path != "res://C/char_cape.png":
 		errors.append("cape cloth must use the independent cape layer")
+	elif body_back != null and not (body_back.get_index() < cape.get_index()
+		and cape.get_index() < sprite.get_index()):
+		errors.append("draw order must be BodyBack -> Cape -> Torso")
 
 	# The artwork's opaque centre must land on VisualRoot's x = 0 so that
 	# flipping via scale.x = -1 does not shift the character sideways.

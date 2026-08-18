@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://B/player_controller.gd" id="1_ctrl"]
 [ext_resource type="Script" path="res://B/player_visuals.gd" id="2_vis"]
@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" path="res://B/dust_dot.png" id="8_dust"]
 [ext_resource type="Script" path="res://B/cape_cloth.gd" id="9_capecloth"]
 [ext_resource type="Texture2D" path="res://C/char_cape.png" id="10_capetex"]
+[ext_resource type="Texture2D" path="res://C/char_body_under_cape.png" id="11_bodyback"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_player"]
 size = Vector2(35, 78.75)
@@ -27,7 +28,7 @@ script = ExtResource("2_vis")
 [node name="BodyBack" type="Sprite2D" parent="VisualRoot"]
 position = Vector2(1.424, -39.07)
 scale = Vector2(0.040698, 0.040698)
-texture = ExtResource("3_torso")
+texture = ExtResource("11_bodyback")
 
 [node name="Cape" type="Polygon2D" parent="VisualRoot"]
 texture = ExtResource("10_capetex")
