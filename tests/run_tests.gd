@@ -184,8 +184,8 @@ func _test_player_scene_geometry(errors: Array) -> bool:
 		errors.append("VisualRoot must sit at the feet (%f), got %f"
 			% [COLLIDER_HALF_HEIGHT, visual_root.position.y])
 
-	if sprite.texture.resource_path != "res://C/char_torso.png":
-		errors.append("torso must use the cut torso layer, got %s"
+	if sprite.texture.resource_path != "res://C/char_body_t.png":
+		errors.append("torso must use the complete broad body layer, got %s"
 			% sprite.texture.resource_path)
 
 	# The animated cloth must have a separately authored, complete body below
@@ -195,7 +195,7 @@ func _test_player_scene_geometry(errors: Array) -> bool:
 	if body_back == null:
 		errors.append("missing full body layer behind the cape")
 	elif body_back.texture == null \
-		or body_back.texture.resource_path != "res://C/char_body_under_cape.png":
+		or body_back.texture.resource_path != "res://C/char_body_t.png":
 		errors.append("body back must use the complete under-cape body art")
 	elif body_back.position.distance_to(sprite.position) > 0.01 \
 		or body_back.scale.distance_to(sprite.scale) > 0.0001:

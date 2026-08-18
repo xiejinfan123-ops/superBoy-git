@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://B/player_controller.gd" id="1_ctrl"]
 [ext_resource type="Script" path="res://B/player_visuals.gd" id="2_vis"]
-[ext_resource type="Texture2D" path="res://C/char_torso.png" id="3_torso"]
+[ext_resource type="Texture2D" path="res://C/char_body_t.png" id="3_torso"]
 [ext_resource type="Texture2D" path="res://C/char_leg_far.png" id="4_legfar"]
 [ext_resource type="Texture2D" path="res://C/char_leg_near.png" id="5_legnear"]
 [ext_resource type="Texture2D" path="res://B/lantern_glow_019.png" id="6_glow"]
@@ -10,7 +10,7 @@
 [ext_resource type="Texture2D" path="res://B/dust_dot.png" id="8_dust"]
 [ext_resource type="Script" path="res://B/cape_cloth.gd" id="9_capecloth"]
 [ext_resource type="Texture2D" path="res://C/char_cape.png" id="10_capetex"]
-[ext_resource type="Texture2D" path="res://C/char_body_under_cape.png" id="11_bodyback"]
+[ext_resource type="Texture2D" path="res://C/char_body_t.png" id="11_bodyback"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_player"]
 size = Vector2(35, 78.75)
