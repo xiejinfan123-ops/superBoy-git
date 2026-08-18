@@ -1,0 +1,119 @@
+[gd_scene format=3 uid="uid://4hcd520rrbds"]
+
+[ext_resource type="Script" uid="uid://wmqxmy17lesj" path="res://Fog/fog_effect.gd" id="1_fog"]
+[ext_resource type="Texture2D" uid="uid://cn50v28wetbqt" path="res://Fog/low_fog.png" id="2_low"]
+[ext_resource type="Texture2D" uid="uid://sd48evkrjenw" path="res://Fog/fog_band.png" id="3_band"]
+
+[node name="FogEffect" type="Node2D" unique_id=1355016431]
+position = Vector2(119, -581)
+script = ExtResource("1_fog")
+
+[node name="LowFog" type="Node2D" parent="." unique_id=1163923628]
+z_index = 3
+position = Vector2(-1203, 7)
+
+[node name="L0" type="Sprite2D" parent="LowFog" unique_id=1273901188]
+modulate = Color(1, 1, 1, 0.34901962)
+position = Vector2(-870, -2032)
+scale = Vector2(14, 3)
+texture = ExtResource("2_low")
+
+[node name="L1" type="Sprite2D" parent="LowFog" unique_id=292671146]
+modulate = Color(1, 1, 1, 0.34901962)
+position = Vector2(-824, -1362)
+scale = Vector2(14, 3)
+texture = ExtResource("2_low")
+
+[node name="L2" type="Sprite2D" parent="LowFog" unique_id=1859299259]
+modulate = Color(1, 1, 1, 0.34901962)
+position = Vector2(-257.00024, -2297)
+scale = Vector2(14, 3)
+texture = ExtResource("2_low")
+
+[node name="L3" type="Sprite2D" parent="LowFog" unique_id=381393633]
+modulate = Color(1, 1, 1, 0.34901962)
+position = Vector2(259, -2626)
+scale = Vector2(14, 3)
+texture = ExtResource("2_low")
+
+[node name="L4" type="Sprite2D" parent="LowFog" unique_id=1389835944]
+modulate = Color(1, 1, 1, 0.34901962)
+position = Vector2(-1590, 1034)
+scale = Vector2(14, 29.614408)
+texture = ExtResource("2_low")
+
+[node name="BandFog" type="Node2D" parent="." unique_id=291166172]
+modulate = Color(1, 1, 1, 0.34901962)
+z_index = 4
+position = Vector2(-4374, 229)
+
+[node name="B0" type="Sprite2D" parent="BandFog" unique_id=2063231209]
+modulate = Color(1, 1, 1, 0.34901962)
+position = Vector2(1790, -137)
+scale = Vector2(10, 9.59074)
+texture = ExtResource("3_band")
+
+[node name="B1" type="Sprite2D" parent="BandFog" unique_id=1971209370]
+modulate = Color(1, 1, 1, 0.34901962)
+position = Vector2(-156, 525.99994)
+scale = Vector2(10, 12.502778)
+texture = ExtResource("3_band")
+
+[node name="B2" type="Sprite2D" parent="BandFog" unique_id=1672680959]
+modulate = Color(1, 1, 1, 0.34901962)
+position = Vector2(2546, 143.99988)
+scale = Vector2(10, 12.410186)
+texture = ExtResource("3_band")
+
+[node name="L0" type="Sprite2D" parent="." unique_id=1187680931]
+modulate = Color(1, 1, 1, 0.34901962)
+position = Vector2(-1740.0002, -2179)
+scale = Vector2(14, 3)
+texture = ExtResource("2_low")
+
+[node name="L1" type="Sprite2D" parent="." unique_id=627110189]
+modulate = Color(1, 1, 1, 0.34901962)
+position = Vector2(-2302.0002, -1958)
+scale = Vector2(14, 3)
+texture = ExtResource("2_low")
+
+[node name="L2" type="Sprite2D" parent="." unique_id=2026681488]
+modulate = Color(1, 1, 1, 0.34901962)
+position = Vector2(-1411.0002, -2344)
+scale = Vector2(14, 9.754238)
+texture = ExtResource("2_low")
+
+[node name="L3" type="Sprite2D" parent="." unique_id=728690879]
+modulate = Color(1, 1, 1, 0.34901962)
+position = Vector2(-1609.0002, -2128)
+scale = Vector2(14, 9.381355)
+texture = ExtResource("2_low")
+
+[node name="L4" type="Sprite2D" parent="." unique_id=692285792]
+modulate = Color(1, 1, 1, 0.34901962)
+position = Vector2(-2412.9998, 1366.9995)
+scale = Vector2(14, 9.207627)
+texture = ExtResource("2_low")
+
+[node name="BandFog2" type="Node2D" parent="." unique_id=154936768]
+modulate = Color(1, 1, 1, 0.34901962)
+z_index = 4
+position = Vector2(-3455, 696)
+
+[node name="B0" type="Sprite2D" parent="BandFog2" unique_id=1080684532]
+modulate = Color(1, 1, 1, 0.34901962)
+position = Vector2(451.9995, 599.1749)
+scale = Vector2(10, 9.12639)
+texture = ExtResource("3_band")
+
+[node name="B1" type="Sprite2D" parent="BandFog2" unique_id=1375093515]
+modulate = Color(1, 1, 1, 0.34901962)
+position = Vector2(-1078.0002, 336.8999)
+scale = Vector2(10, 10.131484)
+texture = ExtResource("3_band")
+
+[node name="B2" type="Sprite2D" parent="BandFog2" unique_id=1172778961]
+modulate = Color(1, 1, 1, 0.34901962)
+position = Vector2(2152.0002, 463.54993)
+scale = Vector2(10, 8.489818)
+texture = ExtResource("3_band")
