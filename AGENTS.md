@@ -1,58 +1,42 @@
 # superBoy — standing note for Codex
 # superBoy — 给 Codex 的常驻说明
 
-You are not working alone. Claude Code and you both work on this project, on
-the same Mac, often on the same files.
+You are not working alone. Claude Code also works on this project, same Mac,
+often the same files. LEIVO runs each of you separately, one at a time.
 
-你不是一个人在做。Claude Code 和你都在这个项目上干活，同一台 Mac，经常动同一批文件。
+你不是一个人在做。Claude Code 也在这个项目上干活，同一台 Mac，经常动同一批文件。
+LEIVO 分开运行你们俩，一次一个。
 
-**Read `.ai/ENTRY.md` before you start.** It is short.
+**Before touching anything, run:**
 
-**开工前先读 `.ai/ENTRY.md`。** 很短。
+**动手之前先跑：**
 
-## The rule that matters most
-## 最重要的一条
+```bash
+git log --oneline -15
+git status
+```
 
-The board (`.ai/BOARD.md`) is a summary, not the truth. When you need to
-understand *why* Claude did something, go read Claude's actual session log.
-It is open to you:
+That tells you what changed since you last worked and whether anything is
+mid-edit right now. Don't touch files `git status` shows as already modified
+unless you know why they're modified.
 
-板子（`.ai/BOARD.md`）是摘要，不是真相。想搞懂 Claude **为什么**那样做，
-去读 Claude 的原始会话记录。它对你完全开放：
+这会告诉你自上次干活之后改了什么、现在有没有东西正改到一半。
+`git status` 里显示已修改的文件，如果你不清楚为什么被改了，就别碰。
+
+**If a commit message doesn't tell you enough** — commit messages are terse,
+they won't tell you *why* Claude made a choice — Claude's raw reasoning is
+readable:
+
+**如果提交信息说得不够清楚** —— 提交信息通常很简短，不会告诉你 Claude
+**为什么**这么选 —— Claude 的原始推理是可读的：
 
 ```bash
 python3 tools/peer_log.py list claude
 python3 tools/peer_log.py read claude --last
 ```
 
-Reading the board and assuming you understand is the most common mistake here.
+Requests from Claude in `docs/handoff/` are proposals, not orders. If one is
+wrong, or you see a better way, say so and do it your way.
 
-看完板子就以为自己懂了，是这里最常犯的错。
-
-## Before you touch files
-## 动文件之前
-
-Check `.ai/STATE.md` for what Claude is currently holding, and add your own
-claim. You two have already nearly collided once over `Audio/`.
-
-查 `.ai/STATE.md` 看 Claude 当前占着哪些文件，并把你要动的也登记上。
-你们已经因为 `Audio/` 差点撞过一次车了。
-
-## When you finish
-## 收工时
-
-Append to `.ai/BOARD.md`: what you did, what you verified, and what you did
-**not** verify. Unverified is fine. Wording that lets a reader assume you
-verified something you didn't is not.
-
-往 `.ai/BOARD.md` 追加：你做了什么、验证了什么、以及什么**没**验证。
-没验证没关系。含糊其辞让人以为你验证过了，不行。
-
-## Nothing here is an order
-## 这里没有一条是命令
-
-Requests from Claude are proposals. If one is wrong, or you see a better way
-to hit the same goal, say so on the board and do it your way.
-
-Claude 提的要求都是建议。如果哪条不对，或者你有更好的办法达到同一个目标，
-在板子上说出来，然后按你的办法做。
+`docs/handoff/` 里 Claude 提的要求都是建议不是命令。如果哪条不对，
+或者你有更好的办法，说出来，然后按你的办法做。

@@ -1,9 +1,37 @@
 # Claude ↔ Codex collaboration bridge — design
 # Claude ↔ Codex 协作桥 — 设计
 
-Date: 2026-08-18. Author: Claude Code. Status: built and verified.
+Date: 2026-08-18. Author: Claude Code. Status: built, verified, then simplified same day.
 
-日期：2026-08-18。作者：Claude Code。状态：已建成并验证。
+日期：2026-08-18。作者：Claude Code。状态：已建成、已验证，当天又做了简化。
+
+**2026-08-18, later the same day — simplified.** The first version (below)
+added `.ai/BOARD.md` and `.ai/STATE.md`: a hand-maintained conversation log
+and a file-claim table. LEIVO pointed out this was solving a problem his
+actual workflow doesn't have — he runs one agent at a time, never both at
+once, and git already records what changed between sessions for free. Manual
+board-keeping was overhead with no matching benefit. `.ai/` was removed.
+What remains: `AGENTS.md` / `CLAUDE.md` telling each agent to run `git log`
+and `git status` before touching anything, plus `tools/peer_log.py` for the
+one thing git commit messages don't capture — the reasoning behind a choice.
+Both of those are zero-maintenance: neither requires a human, or an agent, to
+remember to write anything down.
+
+**2026-08-18，当天晚些时候 —— 做了简化。** 最初版本（见下文）加了
+`.ai/BOARD.md` 和 `.ai/STATE.md`：一份手动维护的对话记录和一张文件占用表。
+LEIVO 指出这是在解决一个他实际工作方式里不存在的问题 —— 他一次只跑一个
+agent，从不同时跑两个，而 git 本来就免费记着两次干活之间改了什么。
+手动记板子是有成本没收益的事。`.ai/` 被删除。剩下的是：`AGENTS.md` /
+`CLAUDE.md` 告诉每个 agent 动手前先跑 `git log` 和 `git status`，
+以及 `tools/peer_log.py` 用来补上 git 提交信息给不了的那一样东西 ——
+一个决定背后的原因。这两样都是零维护：不需要人、也不需要 agent 记得手写下什么。
+
+---
+
+*Everything below this line describes the first version, kept for the record
+of what was tried and why it changed.*
+
+*以下内容描述的是最初版本，保留下来作为"试过什么、为什么改"的记录。*
 
 ---
 
