@@ -9030,5 +9030,5 @@ rotation_smoothing_enabled = true
 drag_horizontal_enabled = true
 script = ExtResource("1_ta5nu")
 target = NodePath("../Player")
-dead_zone = Vector2(140, 220)
+dead_zone = Vector2(20, 20)
 focus_offset = Vector2(100, 40)

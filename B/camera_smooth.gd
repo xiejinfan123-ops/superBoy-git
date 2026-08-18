@@ -1,6 +1,6 @@
 extends Camera2D
 
-## Dead-zone follow (this repo's base approach) with a look-ahead lead and
+## Dead-zone follow (this repo's existing approach) with a look-ahead lead and
 ## airborne tightening layered on top.
 ##
 ## Base behaviour, unchanged in spirit: the camera only moves once the target
@@ -24,13 +24,13 @@ extends Camera2D
 ## Sized against this system's own tracking lag, not just against speed: a
 ## dead-zone camera that moves a fraction of its remaining distance every
 ## frame never fully catches a constantly-moving target, so it settles with a
-## built-in lag of roughly dead_zone + velocity / smoothing. The look-ahead has
-## to clear the static focus_offset AND that lag before the camera visibly
-## leads rather than trails. Retune this if dead_zone changes materially — a
-## looser zone shortens the lag, so less look-ahead is needed to net a lead.
-@export var look_ahead_seconds: float = 0.8
+## built-in lag of roughly dead_zone + velocity / smoothing (about 80 px at
+## this scene's tuning, at top speed). The look-ahead has to clear the static
+## focus_offset AND that lag before the camera visibly leads rather than
+## trails, which is why this is larger than the lag alone would suggest.
+@export var look_ahead_seconds: float = 0.55
 ## Ceiling on the lead, so a fast fall or a launch cannot fling the view away.
-@export var max_look_ahead: float = 420.0
+@export var max_look_ahead: float = 300.0
 ## How quickly the lead builds and releases.
 @export var look_ahead_speed: float = 2.6
 
