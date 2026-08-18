@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Texture2D" uid="uid://dnltold7p5i2x" path="res://C/1/Coral_grass_pink_0000_3.png" id="1_grass"]
+[ext_resource type="Shader" path="res://D/grass_sway.gdshader" id="3_sway"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_sway"]
+shader = ExtResource("3_sway")
+
+[node name="GrassClump" type="Sprite2D"]
+material = SubResource("ShaderMaterial_sway")
+texture = ExtResource("1_grass")

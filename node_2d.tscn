@@ -17,9 +17,14 @@
 [ext_resource type="Texture2D" uid="uid://c0l48fadlkqmq" path="res://C/3/bone_moss_bg_combined_bone_type.png" id="18_fs4d3"]
 [ext_resource type="Texture2D" uid="uid://bhkiawn0g3oxd" path="res://C/3/bone_moss_bg_combined.png" id="19_7vxoj"]
 [ext_resource type="Texture2D" uid="uid://c4dui0w686wv" path="res://C/3/bone_moss_bg_combined_clover_02.png" id="20_ei405"]
-[ext_resource type="PackedScene" path="res://B/player.tscn" id="30_player"]
+[ext_resource type="Texture2D" uid="uid://c6wy7ck5hoc2r" path="res://B/pilgrim_rest_mask.png" id="23_e8dv2"]
+[ext_resource type="PackedScene" uid="uid://dgkos3u64o2c3" path="res://B/player.tscn" id="30_player"]
 [ext_resource type="Script" uid="uid://c88ovlypyjak0" path="res://B/world_reactions.gd" id="31_world"]
 [ext_resource type="PackedScene" uid="uid://4hcd520rrbds" path="res://Fog/fog_effect.tscn" id="32_fog"]
+[ext_resource type="Shader" uid="uid://gngp0s3ey7k8" path="res://D/grass_sway.gdshader" id="33_sway"]
+[ext_resource type="PackedScene" path="res://D/grass_clump.tscn" id="34_grass"]
+[ext_resource type="PackedScene" uid="uid://cx4une4dr5rql" path="res://B/camera_region.tscn" id="35_region"]
+[ext_resource type="Script" uid="uid://cx5y7a85yi3o0" path="res://B/parallax_follow.gd" id="36_parallax"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_rj586"]
 texture = ExtResource("1_0hol4")
@@ -8654,7 +8659,26 @@ texture = ExtResource("1_0hol4")
 physics_layer_0/collision_layer = 1
 sources/0 = SubResource("TileSetAtlasSource_rj586")
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_sway1"]
+shader = ExtResource("33_sway")
+shader_parameter/sway_amount = 0.08
+shader_parameter/sway_speed = 2.0
+shader_parameter/sway_phase = 0.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_sway2"]
+shader = ExtResource("33_sway")
+shader_parameter/sway_amount = 0.08
+shader_parameter/sway_speed = 2.0
+shader_parameter/sway_phase = 0.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_sway3"]
+shader = ExtResource("33_sway")
+shader_parameter/sway_amount = 0.08
+shader_parameter/sway_speed = 2.0
+shader_parameter/sway_phase = 0.0
+
 [node name="Node2D" type="Node2D" unique_id=1095167440]
+script = ExtResource("36_parallax")
 
 [node name="背景Parallax" type="Parallax2D" parent="." unique_id=498848455]
 modulate = Color(0.66656864, 0.6665687, 0.66656864, 1)
@@ -8747,6 +8771,7 @@ texture = ExtResource("20_ei405")
 
 [node name="FogEffect" parent="背景Parallax" unique_id=321094567 instance=ExtResource("32_fog")]
 z_index = 5
+position = Vector2(-3, -789)
 fog_modulate = Color(1, 1, 1, 0.34901962)
 band_modulate = Color(0.9893977, 0.99137574, 0.9944864, 0.2784314)
 
@@ -8796,6 +8821,7 @@ scale = Vector2(0.14002404, 0.14002404)
 texture = ExtResource("2_q6r6c")
 
 [node name="CoralGrassPink00003" type="Sprite2D" parent="场景1装饰" unique_id=1002014817]
+material = SubResource("ShaderMaterial_sway1")
 position = Vector2(-564, -10.000002)
 scale = Vector2(0.3951618, 0.39516187)
 texture = ExtResource("3_hqns4")
@@ -8880,6 +8906,7 @@ scale = Vector2(0.14002404, 0.14002404)
 texture = ExtResource("2_q6r6c")
 
 [node name="CoralGrassPink00003" type="Sprite2D" parent="场景1装饰2" unique_id=868180831]
+material = SubResource("ShaderMaterial_sway2")
 position = Vector2(-800.28, 194.37323)
 scale = Vector2(0.3951618, 0.39516184)
 texture = ExtResource("3_hqns4")
@@ -8912,38 +8939,12 @@ scale = Vector2(0.66129035, 0.6612903)
 texture = ExtResource("9_0h7mo")
 
 [node name="Player" parent="." unique_id=1722773846 instance=ExtResource("30_player")]
-position = Vector2(-1830.5, -43)
+position = Vector2(-1848, -38)
 jump_speed = 800.0
 gravity = 3500.0
 
 [node name="WorldReactions" type="Node" parent="." unique_id=349570842]
 script = ExtResource("31_world")
-
-[node name="Parallax2D黑" type="Parallax2D" parent="." unique_id=70139275]
-scroll_scale = Vector2(2, 2)
-
-[node name="CoralGrassPink00003" type="Sprite2D" parent="Parallax2D黑" unique_id=506478450]
-modulate = Color(0, 0, 0, 1)
-z_index = 2
-position = Vector2(-850, -331)
-texture = ExtResource("3_hqns4")
-
-[node name="CoralGrassPink00003Base" type="Sprite2D" parent="Parallax2D黑" unique_id=691775937]
-modulate = Color(0, 0, 0, 1)
-position = Vector2(-1916, -269.00003)
-scale = Vector2(2.1285715, 2.1285715)
-texture = ExtResource("4_x0ka3")
-
-[node name="CoralBreakSet00461" type="Sprite2D" parent="Parallax2D黑" unique_id=1941071678]
-modulate = Color(0, 0, 0, 1)
-position = Vector2(-3306, -352)
-texture = ExtResource("13_0h7mo")
-
-[node name="Sprite2D" type="Sprite2D" parent="Parallax2D黑" unique_id=545578722]
-modulate = Color(0, 0, 0, 1)
-position = Vector2(404.99997, -353)
-scale = Vector2(1.2901235, 1.2901235)
-texture = ExtResource("9_0h7mo")
 
 [node name="近景" type="Parallax2D" parent="." unique_id=2107594864]
 scroll_scale = Vector2(1.25, 1.25)
@@ -9010,19 +9011,11 @@ scale = Vector2(0.61291623, 0.6477803)
 texture = ExtResource("16_flf07")
 flip_v = true
 
-[node name="Parallax2D" type="Parallax2D" parent="." unique_id=1759018586]
-rotation = 1.5620698
-scale = Vector2(0.5444885, 0.54448843)
-scroll_scale = Vector2(1.4, 1.4)
-
-[node name="PointLight2D" type="PointLight2D" parent="Parallax2D" unique_id=572812845]
-position = Vector2(-1097.1638, 919.7733)
-rotation = -3.5342917
-scale = Vector2(3.1165192, 1.6523671)
-color = Color(0.97882634, 0.8939346, 0.8459876, 1)
-energy = 4.98
-texture = ExtResource("18_7vxoj")
-texture_scale = 1.78
+[node name="PilgrimRestMask" type="Sprite2D" parent="近景" unique_id=1870780065]
+position = Vector2(-2156, -270)
+scale = Vector2(2.1076539, 2.1076543)
+texture = ExtResource("23_e8dv2")
+flip_h = true
 
 [node name="1786819538751" type="Sprite2D" parent="." unique_id=188074487]
 position = Vector2(5691, -311)
@@ -9030,8 +9023,71 @@ scale = Vector2(1.1540534, 1.1540534)
 texture = ExtResource("8_rj586")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=365412144 node_paths=PackedStringArray("target")]
-position = Vector2(-1836, -265)
+position = Vector2(-1839, -270)
 rotation_smoothing_enabled = true
-drag_horizontal_enabled = true
 script = ExtResource("1_ta5nu")
 target = NodePath("../Player")
+vertical_shift = 100.0
+use_regions = true
+regions_parent = NodePath("../CameraRegions")
+
+[node name="Parallax2D" type="Parallax2D" parent="." unique_id=1759018586]
+rotation = 1.5620698
+scale = Vector2(0.5444885, 0.54448843)
+scroll_scale = Vector2(1.4, 1.4)
+
+[node name="PointLight2D" type="PointLight2D" parent="Parallax2D" unique_id=572812845]
+position = Vector2(-1093.2502, 892.25775)
+rotation = -3.5342917
+scale = Vector2(3.1165192, 1.6523671)
+color = Color(0.97882634, 0.8939346, 0.8459876, 1)
+energy = 4.98
+texture = ExtResource("18_7vxoj")
+texture_scale = 1.78
+
+[node name="Parallax2D黑" type="Parallax2D" parent="." unique_id=70139275]
+modulate = Color(0.98234254, 0.9823423, 0.9823424, 1)
+scroll_scale = Vector2(2, 2)
+
+[node name="CoralGrassPink00003" type="Sprite2D" parent="Parallax2D黑" unique_id=506478450]
+modulate = Color(0, 0, 0, 1)
+self_modulate = Color(0.98234254, 0.9823423, 0.9823424, 1)
+z_index = 2
+material = SubResource("ShaderMaterial_sway3")
+position = Vector2(246, -1643)
+scale = Vector2(0.7903226, 0.79032266)
+texture = ExtResource("3_hqns4")
+
+[node name="Grass2" parent="Parallax2D黑" unique_id=61000001 instance=ExtResource("34_grass")]
+modulate = Color(0, 0, 0, 1)
+self_modulate = Color(0.98234254, 0.9823423, 0.9823424, 1)
+position = Vector2(114.99994, -1518.9999)
+scale = Vector2(0.5645161, 0.5645161)
+
+[node name="Grass3" parent="Parallax2D黑" unique_id=61000002 instance=ExtResource("34_grass")]
+modulate = Color(0, 0, 0, 1)
+self_modulate = Color(0.98234254, 0.9823423, 0.9823424, 1)
+position = Vector2(-1173, -374)
+scale = Vector2(1.2, 1.2)
+
+[node name="Grass4" parent="Parallax2D黑" unique_id=61000003 instance=ExtResource("34_grass")]
+modulate = Color(0, 0, 0, 1)
+self_modulate = Color(0.98234254, 0.9823423, 0.9823424, 1)
+position = Vector2(126.99997, -1443)
+scale = Vector2(0.61129034, 0.6112904)
+
+[node name="Grass5" parent="Parallax2D黑" unique_id=61000004 instance=ExtResource("34_grass")]
+modulate = Color(0, 0, 0, 1)
+self_modulate = Color(0.98234254, 0.9823423, 0.9823424, 1)
+position = Vector2(2600, 70)
+scale = Vector2(2.1096776, 2.1096776)
+
+[node name="CameraRegions" type="Node2D" parent="." unique_id=71000001]
+
+[node name="Region1" parent="CameraRegions" unique_id=71000002 instance=ExtResource("35_region")]
+position = Vector2(-1244.0001, -165.00002)
+scale = Vector2(5, 5)
+
+[node name="Region2" parent="CameraRegions" unique_id=1526561673 instance=ExtResource("35_region")]
+position = Vector2(-193, -115)
+scale = Vector2(3, 3)

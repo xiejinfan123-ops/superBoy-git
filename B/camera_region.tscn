@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://cx4une4dr5rql"]
+
+[ext_resource type="Script" uid="uid://bk873fnqd7g28" path="res://B/camera_region.gd" id="1_region"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_region"]
+size = Vector2(237.125, 148.625)
+
+[node name="CameraRegion" type="Area2D" unique_id=1526561673]
+position = Vector2(-8, 8)
+script = ExtResource("1_region")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=86761980]
+position = Vector2(-30.5625, -17.3125)
+shape = SubResource("RectangleShape2D_region")

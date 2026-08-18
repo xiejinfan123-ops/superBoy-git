@@ -1,64 +1,63 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene format=3 uid="uid://dgkos3u64o2c3"]
 
-[ext_resource type="Script" path="res://B/player_controller.gd" id="1_ctrl"]
-[ext_resource type="Script" path="res://B/player_visuals.gd" id="2_vis"]
-[ext_resource type="Texture2D" path="res://C/char_body_t.png" id="3_torso"]
-[ext_resource type="Texture2D" path="res://C/char_leg_far.png" id="4_legfar"]
-[ext_resource type="Texture2D" path="res://C/char_leg_near.png" id="5_legnear"]
-[ext_resource type="Texture2D" path="res://B/lantern_glow_019.png" id="6_glow"]
-[ext_resource type="Script" path="res://B/player_effects.gd" id="7_fx"]
-[ext_resource type="Texture2D" path="res://B/dust_dot.png" id="8_dust"]
-[ext_resource type="Script" path="res://B/cape_cloth.gd" id="9_capecloth"]
-[ext_resource type="Texture2D" path="res://C/char_cape.png" id="10_capetex"]
-[ext_resource type="Texture2D" path="res://C/char_body_t.png" id="11_bodyback"]
+[ext_resource type="Script" uid="uid://c65u6fs7jysv3" path="res://B/player_controller.gd" id="1_ctrl"]
+[ext_resource type="Script" uid="uid://tb86t7x3loho" path="res://B/player_visuals.gd" id="2_vis"]
+[ext_resource type="Texture2D" uid="uid://dms4l70cg6evu" path="res://C/char_leg_far.png" id="4_legfar"]
+[ext_resource type="Texture2D" uid="uid://cbqmnncu06j8m" path="res://C/char_leg_near.png" id="5_legnear"]
+[ext_resource type="Texture2D" uid="uid://mroeukuvaikq" path="res://B/lantern_glow_019.png" id="6_glow"]
+[ext_resource type="Script" uid="uid://b28q3nbixjkhd" path="res://B/player_effects.gd" id="7_fx"]
+[ext_resource type="Texture2D" uid="uid://c0q3io4u2mrip" path="res://B/dust_dot.png" id="8_dust"]
+[ext_resource type="Script" uid="uid://83cmfmhomqyf" path="res://B/cape_cloth.gd" id="9_capecloth"]
+[ext_resource type="Texture2D" uid="uid://cja22xbcdugmn" path="res://C/char_cape.png" id="10_capetex"]
+[ext_resource type="Texture2D" uid="uid://ch3uievsqt1cd" path="res://C/char_body_t.png" id="11_bodyback"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_player"]
 size = Vector2(35, 78.75)
 
-[node name="Player" type="CharacterBody2D"]
+[node name="Player" type="CharacterBody2D" unique_id=850740223]
 script = ExtResource("1_ctrl")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1856239792]
 shape = SubResource("RectangleShape2D_player")
 
-[node name="VisualRoot" type="Node2D" parent="."]
+[node name="VisualRoot" type="Node2D" parent="." unique_id=197760781]
 position = Vector2(0, 39.375)
 script = ExtResource("2_vis")
 
-[node name="BodyBack" type="Sprite2D" parent="VisualRoot"]
-position = Vector2(1.424, -39.07)
-scale = Vector2(0.040698, 0.040698)
+[node name="BodyBack" type="Sprite2D" parent="VisualRoot" unique_id=1553536204]
+position = Vector2(1.874629, -38.61937)
+scale = Vector2(0.041138068, 0.041138068)
 texture = ExtResource("11_bodyback")
 
-[node name="Cape" type="Polygon2D" parent="VisualRoot"]
+[node name="Cape" type="Polygon2D" parent="VisualRoot" unique_id=1958027572]
 texture = ExtResource("10_capetex")
 script = ExtResource("9_capecloth")
 
-[node name="LegFar" type="Node2D" parent="VisualRoot"]
+[node name="LegFar" type="Node2D" parent="VisualRoot" unique_id=1360234301]
 position = Vector2(-2.564, -10.744)
 
-[node name="Sprite2D" type="Sprite2D" parent="VisualRoot/LegFar"]
-position = Vector2(3.988, -28.326)
-scale = Vector2(0.040698, 0.040698)
+[node name="Sprite2D" type="Sprite2D" parent="VisualRoot/LegFar" unique_id=1301632226]
+position = Vector2(4.564, -28.631)
+scale = Vector2(0.041138068, 0.041138068)
 texture = ExtResource("4_legfar")
 
-[node name="LegNear" type="Node2D" parent="VisualRoot"]
+[node name="LegNear" type="Node2D" parent="VisualRoot" unique_id=1714099062]
 position = Vector2(6.186, -10.744)
 
-[node name="Sprite2D" type="Sprite2D" parent="VisualRoot/LegNear"]
+[node name="Sprite2D" type="Sprite2D" parent="VisualRoot/LegNear" unique_id=195024221]
 position = Vector2(-4.762, -28.326)
 scale = Vector2(0.040698, 0.040698)
 texture = ExtResource("5_legnear")
 
-[node name="Torso" type="Sprite2D" parent="VisualRoot"]
+[node name="Torso" type="Sprite2D" parent="VisualRoot" unique_id=1306709188]
 position = Vector2(1.424, -39.07)
 scale = Vector2(0.040698, 0.040698)
-texture = ExtResource("3_torso")
+texture = ExtResource("11_bodyback")
 
-[node name="Effects" type="Node2D" parent="."]
+[node name="Effects" type="Node2D" parent="." unique_id=855273648]
 script = ExtResource("7_fx")
 
-[node name="Dust" type="CPUParticles2D" parent="Effects"]
+[node name="Dust" type="CPUParticles2D" parent="Effects" unique_id=1365143135]
 position = Vector2(0, 39.375)
 emitting = false
 amount = 6
@@ -66,8 +65,6 @@ texture = ExtResource("8_dust")
 lifetime = 0.45
 one_shot = true
 explosiveness = 0.85
-scale_amount_min = 0.06
-scale_amount_max = 0.14
 direction = Vector2(0, -1)
 spread = 55.0
 gravity = Vector2(0, 120)
@@ -75,18 +72,21 @@ initial_velocity_min = 12.0
 initial_velocity_max = 34.0
 damping_min = 20.0
 damping_max = 40.0
+scale_amount_min = 0.06
+scale_amount_max = 0.14
 color = Color(0.88, 0.84, 0.78, 0.7)
 
-[node name="StepSound" type="AudioStreamPlayer2D" parent="Effects"]
+[node name="StepSound" type="AudioStreamPlayer2D" parent="Effects" unique_id=246965044]
 
-[node name="LandSound" type="AudioStreamPlayer2D" parent="Effects"]
+[node name="LandSound" type="AudioStreamPlayer2D" parent="Effects" unique_id=1331265463]
 
-[node name="JumpSound" type="AudioStreamPlayer2D" parent="Effects"]
+[node name="JumpSound" type="AudioStreamPlayer2D" parent="Effects" unique_id=61415638]
 
-[node name="PointLight2D" type="PointLight2D" parent="."]
-position = Vector2(-4.6, 12.3)
-scale = Vector2(2, 1.91)
+[node name="PointLight2D" type="PointLight2D" parent="." unique_id=1955640858]
+position = Vector2(5.74e-42, -4.065758e-20)
+scale = Vector2(2.0136364, 1.9230225)
 color = Color(0.92024887, 0.9172649, 0.9132015, 1)
 energy = 2.41
 texture = ExtResource("6_glow")
 texture_scale = 1.5
+metadata/_edit_lock_ = true
