@@ -8964,7 +8964,7 @@ script = ExtResource("31_world")
 
 [node name="近景" type="Parallax2D" parent="." unique_id=2107594864]
 scroll_scale = Vector2(1.25, 1.25)
-scroll_offset = Vector2(799, -19)
+scroll_offset = Vector2(805, -25)
 
 [node name="台" type="Sprite2D" parent="近景" unique_id=1775160792]
 modulate = Color(0.38928655, 0.38928664, 0.38928658, 1)
@@ -9009,7 +9009,7 @@ texture = ExtResource("2_q6r6c")
 
 [node name="AqueductCorpse0000Layer2" type="Sprite2D" parent="近景" unique_id=1004356129]
 modulate = Color(0.28118682, 0.28118688, 0.28118682, 1)
-position = Vector2(-1534.0001, 1572)
+position = Vector2(-1258.0001, -1969.0001)
 scale = Vector2(0.47173905, 0.4717391)
 texture = ExtResource("7_d21ai")
 
@@ -9114,11 +9114,11 @@ scale = Vector2(2.1096776, 2.1096776)
 [node name="CameraRegions" type="Node2D" parent="." unique_id=71000001]
 
 [node name="Region1" parent="CameraRegions" unique_id=71000002 instance=ExtResource("35_region")]
-position = Vector2(-1113.0001, -152.00002)
+position = Vector2(-1163, -184)
 scale = Vector2(5, 5)
 
 [node name="Region2" parent="CameraRegions" unique_id=1526561673 instance=ExtResource("35_region")]
-position = Vector2(44, -95)
+position = Vector2(43, -96)
 scale = Vector2(3, 3)
 
 [node name="BonemossCombinedStalactites00001" type="Sprite2D" parent="." unique_id=231626696]
