@@ -20,8 +20,8 @@ texture = ExtResource("2_low")
 
 [node name="L1" type="Sprite2D" parent="LowFog" unique_id=292671146]
 modulate = Color(1, 1, 1, 0.34901962)
-position = Vector2(-824, -1362)
-scale = Vector2(14, 3)
+position = Vector2(-6548, -1339)
+scale = Vector2(9.162503, 49.44492)
 texture = ExtResource("2_low")
 
 [node name="L2" type="Sprite2D" parent="LowFog" unique_id=1859299259]
@@ -38,7 +38,7 @@ texture = ExtResource("2_low")
 
 [node name="L4" type="Sprite2D" parent="LowFog" unique_id=1389835944]
 modulate = Color(1, 1, 1, 0.34901962)
-position = Vector2(-1590, 1034)
+position = Vector2(-1399, 843)
 scale = Vector2(14, 29.614408)
 texture = ExtResource("2_low")
 
@@ -102,7 +102,7 @@ position = Vector2(-3455, 696)
 
 [node name="B0" type="Sprite2D" parent="BandFog2" unique_id=1080684532]
 modulate = Color(1, 1, 1, 0.34901962)
-position = Vector2(451.9995, 599.1749)
+position = Vector2(-1753, 3804)
 scale = Vector2(10, 9.12639)
 texture = ExtResource("3_band")
 
