@@ -74,11 +74,18 @@ var _vertical_shift: float = 0.0
 var _region_centre: Vector2 = Vector2.ZERO
 var _regions: Array[Rect2] = []
 var _locked_region: int = -1
+var _shake: float = 0.0
+
+
+func _on_player_hit(_dir: Vector2) -> void:
+	_shake = 16.0
 
 
 func _ready() -> void:
 	zoom = Vector2(view_zoom, view_zoom)
 	_player = target as PlayerController
+	if _player != null:
+		_player.hit.connect(_on_player_hit)
 	_collect_regions()
 	# The camera's built-in drag margins fight the region-lock centre, and any
 	# residual drag offset from the follow mode would shift the view sideways
@@ -199,3 +206,10 @@ func _physics_process(delta: float) -> void:
 		_kick = 3.0 * _player.landing_impact
 	_kick = lerpf(_kick, 0.0, 1.0 - exp(-9.0 * delta))
 	global_position.y += _kick
+
+	# Hit shake: a decaying random jolt after the player takes a hit.
+	if _shake > 0.0:
+		_shake = lerpf(_shake, 0.0, 1.0 - exp(-8.0 * delta))
+		global_position += Vector2(
+			randf_range(-_shake, _shake) * 0.6,
+			randf_range(-_shake, _shake) * 0.6)

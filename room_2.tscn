@@ -1,0 +1,55 @@
+[gd_scene format=3 uid="uid://btgbr0gipawcw"]
+
+[ext_resource type="Script" uid="uid://cx5y7a85yi3o0" path="res://B/parallax_follow.gd" id="1_parallax"]
+[ext_resource type="Script" uid="uid://gx83msbkdcqb" path="res://B/camera_smooth.gd" id="2_camera"]
+[ext_resource type="PackedScene" uid="uid://dgkos3u64o2c3" path="res://B/player.tscn" id="3_player"]
+[ext_resource type="PackedScene" uid="uid://c7m0lo5rbykin" path="res://B/interaction_door.tscn" id="4_door"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_floor"]
+size = Vector2(1200, 64)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
+size = Vector2(64, 900)
+
+[node name="Room2" type="Node2D" unique_id=20001]
+script = ExtResource("1_parallax")
+
+[node name="Ground" type="StaticBody2D" parent="." unique_id=20002]
+position = Vector2(0, 300)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground" unique_id=20003]
+shape = SubResource("RectangleShape2D_floor")
+
+[node name="Visual" type="Polygon2D" parent="Ground" unique_id=20004]
+color = Color(0.35, 0.35, 0.45, 1)
+polygon = PackedVector2Array(-600, -32, 600, -32, 600, 32, -600, 32)
+
+[node name="WallLeft" type="StaticBody2D" parent="." unique_id=20008]
+position = Vector2(-620, -150)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallLeft" unique_id=20009]
+position = Vector2(-13, 34)
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="WallRight" type="StaticBody2D" parent="." unique_id=20010]
+position = Vector2(620, -150)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallRight" unique_id=20011]
+position = Vector2(12, 33)
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="Player" parent="." unique_id=20005 instance=ExtResource("3_player")]
+position = Vector2(-583, 228)
+jump_speed = 800.0
+gravity = 3500.0
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=20006 node_paths=PackedStringArray("target")]
+position = Vector2(0, -56)
+rotation_smoothing_enabled = true
+script = ExtResource("2_camera")
+target = NodePath("../Player")
+vertical_shift = 100.0
+
+[node name="Door" parent="." unique_id=20007 instance=ExtResource("4_door")]
+position = Vector2(572, 208)
+target_scene = "res://node_2d.tscn"

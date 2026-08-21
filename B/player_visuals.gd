@@ -82,6 +82,7 @@ var _stride_phase: float = 0.0
 var _far_angle: float = 0.0
 var _near_angle: float = 0.0
 var _torso_rest_y: float = 0.0
+var _hurt_flash: float = 0.0
 
 
 func _ready() -> void:
@@ -91,6 +92,19 @@ func _ready() -> void:
 	_torso = get_node_or_null("Torso")
 	if _torso != null:
 		_torso_rest_y = _torso.position.y
+	if _player != null:
+		_player.hit.connect(_on_player_hit)
+
+
+func _on_player_hit(_dir: Vector2) -> void:
+	_hurt_flash = 1.0
+	_apply_hurt()
+
+
+func _apply_hurt() -> void:
+	# Snap a hurt jolt into the squash: a sharp inward squeeze that reads as a
+	# punch being taken, distinct from the soft landing squash.
+	_squash = 0.22
 
 
 func _physics_process(delta: float) -> void:
@@ -102,10 +116,20 @@ func _physics_process(delta: float) -> void:
 	var breath := _update_breath(delta)
 	_update_stride(delta)
 
+	_hurt_flash = maxf(_hurt_flash - delta * 4.0, 0.0)
+
 	var horizontal := (1.0 + _squash) * float(_player.facing)
 	var vertical := 1.0 - _squash + breath
 	scale = Vector2(horizontal, vertical)
 	rotation = _lean
+
+	# White hurt flash, and a blink while invincible.
+	var mod := Color(1, 1, 1, 1)
+	if _hurt_flash > 0.0:
+		mod = Color(1.0, 0.55, 0.45, 1.0)
+	elif _player.invincible and int(Time.get_ticks_msec() / 90) % 2 == 0:
+		mod.a = 0.45
+	self_modulate = mod
 
 
 func _update_squash(delta: float) -> void:

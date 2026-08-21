@@ -1,0 +1,27 @@
+[gd_scene format=3 uid="uid://bpijb508f0p47"]
+
+[ext_resource type="Script" uid="uid://6k9am2p4vq1t0" path="res://B/portal.gd" id="1_portal"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_portal"]
+radius = 30.0
+
+[node name="Portal" type="Area2D" unique_id=10001]
+script = ExtResource("1_portal")
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=10002]
+shape = SubResource("CircleShape2D_portal")
+
+[node name="Pulse" type="CPUParticles2D" parent="." unique_id=10003]
+emitting = true
+amount = 12
+lifetime = 1.2
+direction = Vector2(0, -1)
+spread = 50.0
+gravity = Vector2(0, -20)
+initial_velocity_min = 10.0
+initial_velocity_max = 45.0
+scale_amount_min = 1.5
+scale_amount_max = 4.0
+color = Color(0.6, 0.95, 1, 0.9)

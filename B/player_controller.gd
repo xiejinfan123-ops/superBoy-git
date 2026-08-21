@@ -1,6 +1,10 @@
 class_name PlayerController
 extends CharacterBody2D
 
+## Emitted when the player takes a hit, with the direction the knockback
+## pushes him (unit vector). The visuals/camera listen for the flash and shake.
+signal hit(direction: Vector2)
+
 ## Physics and state for the player character.
 ## Visuals live in player_visuals.gd and only read from here.
 ##
@@ -9,6 +13,8 @@ extends CharacterBody2D
 ## extraction of every source number is documented in
 ## docs/reference/hollow-knight-extracted-values.md — change values there-first
 ## mentality: if a number here looks arbitrary, that file says where it came from.
+
+const ProjectileScene := preload("res://B/projectile.tscn")
 
 @export_group("Run")
 ## Top horizontal speed. HK: RUN_SPEED 8.3 u/s.
@@ -76,12 +82,79 @@ var just_jumped: bool = false
 ## is speeding up into it or coasting down out of it.
 var accel_x: float = 0.0
 
+@export_group("Attack")
+## Cooldown between shots, in seconds. The player cannot fire again until this
+## elapses after the previous shot.
+@export var attack_duration: float = 0.1
+## Horizontal speed of the fired projectile, in px/s.
+@export var projectile_speed: float = 900.0
+
+@export_group("Hurt")
+## Seconds of invincibility after taking a hit.
+@export var i_frame_time: float = 0.7
+## How long the white hurt-flash lasts, seconds.
+@export var hit_flash_time: float = 0.18
+## Seconds the whole game freezes on a hit (hit-stop).
+@export var hit_stop_time: float = 0.08
+
+## True while the player is invincible after a hit (blinking).
+var invincible: bool = false
+
+## True while the attack is cooling down. Read by anything that wants to show
+## a fire-inhibited state.
+var attacking: bool = false
+## 0..1 progress through the current attack window.
+var attack_progress: float = 0.0
+
+var _attack_timer: float = 0.0
+var _attacking: bool = false
 var _was_grounded: bool = false
 var _coyote_timer: float = 0.0
 var _buffer_timer: float = 0.0
 var _sustaining: bool = false
 var _sustain_timer: float = 0.0
 var _previous_velocity_x: float = 0.0
+var _knockback: Vector2 = Vector2.ZERO
+var _hit_flash: float = 0.0
+var _i_frame_timer: float = 0.0
+var _has_i_frames: bool = false
+var _hit_stop_timer: float = 0.0
+
+
+func _ready() -> void:
+	add_to_group("Player")
+
+
+## Applies a burst of velocity away from `from`. The player is briefly driven
+## by the knockback instead of the input axis.
+func apply_knockback(from: Vector2, force: float) -> void:
+	var dir := (global_position - from).normalized()
+	if dir == Vector2.ZERO:
+		dir = Vector2(-_facing_for_knockback(), 0.0)
+	_knockback = dir * force
+	velocity = _knockback
+	_hit_flash = 0.18
+	_has_i_frames = true
+	_i_frame_timer = i_frame_time
+	_hit_stop()
+	hit.emit(dir)
+
+
+func _facing_for_knockback() -> float:
+	return -1.0 if facing == 1 else 1.0
+
+
+func is_invincible() -> bool:
+	return invincible
+
+
+## Freezes the player's own movement for a beat so the impact reads as a hard
+## hit. The knockback impulse is held (not decayed) during the freeze, then
+## releases — so the player is clearly "staggered" rather than instantly
+## flung. This avoids touching the global time scale, which can strand the
+## player mid-frozen.
+func _hit_stop() -> void:
+	_hit_stop_timer = hit_stop_time
 
 
 func _physics_process(delta: float) -> void:
@@ -89,10 +162,48 @@ func _physics_process(delta: float) -> void:
 	just_landed = false
 	just_jumped = false
 
+	if _has_i_frames:
+		_i_frame_timer = maxf(_i_frame_timer - delta, 0.0)
+		if _i_frame_timer == 0.0:
+			_has_i_frames = false
+	invincible = _has_i_frames
+	_hit_flash = maxf(_hit_flash - delta, 0.0)
+
+	# Click fires a shot. If W (attack_up) is held at the moment of the click,
+	# the shot goes straight up instead of horizontally.
+	var want_fire := false
+	var fire_dir := Vector2(facing, 0.0)
+	if input.attack_just_pressed:
+		want_fire = true
+		if input.attack_up_held:
+			fire_dir = Vector2.UP
+	if want_fire and not _attacking:
+		_attacking = true
+		_attack_timer = attack_duration
+		_fire_projectile(fire_dir)
+	_attack_timer = maxf(_attack_timer - delta, 0.0)
+	if _attack_timer == 0.0:
+		_attacking = false
+	attacking = _attacking
+	attack_progress = 1.0 - _attack_timer / maxf(attack_duration, 0.001)
+
 	var grounded := is_on_floor()
-	_apply_horizontal(delta, grounded)
-	_apply_jump(delta, grounded)
-	_apply_gravity(delta)
+	# Hit-stop: the player is staggered in place, holding the impact pose for
+	# a beat. The knockback is held, then released to fling him after the
+	# freeze — a hard "hit then knocked back" cadence.
+	if _hit_stop_timer > 0.0:
+		_hit_stop_timer = maxf(_hit_stop_timer - delta, 0.0)
+		velocity = Vector2.ZERO
+		_apply_gravity(delta)
+	elif _knockback.length_squared() > 1.0:
+		_knockback = _knockback.move_toward(Vector2.ZERO, 2400.0 * delta)
+		velocity.x = _knockback.x
+		_apply_gravity(delta)
+	else:
+		_knockback = Vector2.ZERO
+		_apply_horizontal(delta, grounded)
+		_apply_jump(delta, grounded)
+		_apply_gravity(delta)
 
 	var impact_speed := velocity.y
 	move_and_slide()
@@ -117,6 +228,16 @@ func _apply_gravity(delta: float) -> void:
 	if _sustaining:
 		return
 	velocity.y = minf(velocity.y + gravity * delta, max_fall_speed)
+
+
+func _fire_projectile(dir: Vector2) -> void:
+	var shot := ProjectileScene.instantiate()
+	get_tree().current_scene.add_child(shot)
+	shot.speed = projectile_speed
+	var muzzle := Vector2(0.0, -45.0)
+	if dir.y != 0.0:
+		muzzle = Vector2(0.0, -60.0)
+	shot.fire(global_position + muzzle, dir)
 
 
 func _apply_horizontal(delta: float, grounded: bool) -> void:

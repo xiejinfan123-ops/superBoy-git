@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://c7m0lo5rbykin"]
+
+[ext_resource type="Script" uid="uid://wmn5zs5afb3i6" path="res://B/interaction_door.gd" id="1_door"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_door"]
+size = Vector2(56, 120)
+
+[node name="InteractionDoor" type="Area2D" unique_id=30001]
+script = ExtResource("1_door")
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=30002]
+shape = SubResource("RectangleShape2D_door")
+
+[node name="Visual" type="Polygon2D" parent="." unique_id=30003]
+polygon = PackedVector2Array(-28, 60, 28, 60, 28, -60, -28, -60)
+color = Color(0.55, 0.3, 0.85, 0.55)
