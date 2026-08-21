@@ -3,12 +3,12 @@
 [ext_resource type="Script" uid="uid://bk873fnqd7g28" path="res://B/camera_region.gd" id="1_region"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_region"]
-size = Vector2(273, 169.625)
+size = Vector2(270, 151.8125)
 
 [node name="CameraRegion" type="Area2D" unique_id=1526561673]
 position = Vector2(-8, 8)
 script = ExtResource("1_region")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=86761980]
-position = Vector2(-26, 1)
+position = Vector2(-128, -7.90625)
 shape = SubResource("RectangleShape2D_region")

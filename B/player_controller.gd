@@ -12,7 +12,7 @@ extends CharacterBody2D
 
 @export_group("Run")
 ## Top horizontal speed. HK: RUN_SPEED 8.3 u/s.
-@export var max_run_speed: float = 510.0
+@export var max_run_speed: float = 310.0
 ## Ground speed build-up. HK sets velocity outright (no ramp); the finite ramp
 ## here is the deliberate Rain World half of the recipe — about 0.09 s to full.
 ## Raise it to approach HK exactly.

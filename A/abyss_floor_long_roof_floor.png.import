@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bena8224kin6g"
-path="res://.godot/imported/Flea_Scoreboard_Icons_0001_Generic.png-5b54f3fa11f550c332ddc7e56b0fd9ff.ctex"
+uid="uid://7t60rddoam5b"
+path="res://.godot/imported/abyss_floor_long_roof_floor.png-646c04bf6f9f59c7e8af10427256d828.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://A/Flea_Scoreboard_Icons_0001_Generic.png"
-dest_files=["res://.godot/imported/Flea_Scoreboard_Icons_0001_Generic.png-5b54f3fa11f550c332ddc7e56b0fd9ff.ctex"]
+source_file="res://A/abyss_floor_long_roof_floor.png"
+dest_files=["res://.godot/imported/abyss_floor_long_roof_floor.png-646c04bf6f9f59c7e8af10427256d828.ctex"]
 
 [params]
 
